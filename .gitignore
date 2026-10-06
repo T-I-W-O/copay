@@ -1,24 +1,12 @@
-# Secrets
+# Ignore environment variables
 .env
-*.env
-!.env.example
 
-# Data exports and local DBs
-backup.json
-db.sqlite3
+# Ignore database file
+*.sqlite3
 
-# Python
+# Ignore Python cache files
 __pycache__/
-*.pyc
+
+# Ignore virtual environment folder
 venv/
-.venv/
-env/
 
-# Django generated
-staticfiles/
-media/
-
-# Editor / OS
-.vscode/
-.idea/
-.DS_Store
