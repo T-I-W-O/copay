@@ -38,19 +38,17 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
 # Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "cloudinary_storage",  # must come BEFORE django.contrib.staticfiles
     "django.contrib.staticfiles",
+    "cloudinary_storage",
     "cloudinary",
     "core",
 ]
-
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
