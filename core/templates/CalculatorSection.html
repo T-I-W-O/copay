@@ -1,0 +1,210 @@
+<!-- Calculator Section Component -->
+<section
+  id="calculator-section"
+  class="py-16 lg:py-28 px-4 md:px-8 lg:px-16 overflow-hidden relative"
+  style="
+    background: linear-gradient(135deg, #080C14 0%, #0D1525 100%);
+    border-top: 1px solid rgba(255,255,255,0.04);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  "
+>
+  <!-- Background Glow Orb -->
+  <div
+    class="absolute top-0 right-0 w-[700px] h-[700px] rounded-full pointer-events-none"
+    style="background: radial-gradient(circle, rgba(255,255,255,0.02) 0%, transparent 65%);"
+  ></div>
+
+  <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center relative z-10">
+    
+    <!-- Left Column: Copy & Feature Points -->
+    <div class="cs-left flex flex-col gap-6">
+      <p class="text-sm font-bold tracking-widest uppercase text-white/60">Save More</p>
+      <h2 class="font-black text-white leading-[1.05]" style="font-size: clamp(2.2rem, 4vw, 3.8rem);">
+        Stop paying full price for subscriptions you barely use.
+      </h2>
+      <p class="text-lg leading-relaxed" style="color: rgba(255,255,255,0.45);">
+        CoPay connects Nigerians who want to share the cost of premium subscriptions. AES-256-GCM vault keeps passwords encrypted until escrow releases.
+
+      </p>
+      
+      <div class="flex flex-col gap-4">
+        <!-- Point 1 -->
+        <div class="flex items-start gap-4">
+          <div
+            class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+            style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);"
+          >
+            <i data-lucide="shield-check" class="w-4 h-4 text-white"></i>
+          </div>
+          <p class="text-sm leading-relaxed" style="color: rgba(255,255,255,0.6);">100% Escrow protected — full refund if anything goes wrong</p>
+        </div>
+
+        <!-- Point 2 -->
+        <div class="flex items-start gap-4">
+          <div
+            class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+            style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);"
+          >
+            <i data-lucide="lock" class="w-4 h-4 text-white"></i>
+          </div>
+          <p class="text-sm leading-relaxed" style="color: rgba(255,255,255,0.6);">End-to-end encrypted credentials — we never see your passwords</p>
+        </div>
+
+        <!-- Point 3 -->
+        <div class="flex items-start gap-4">
+          <div
+            class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+            style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);"
+          >
+            <i data-lucide="zap" class="w-4 h-4 text-white"></i>
+          </div>
+          <p class="text-sm leading-relaxed" style="color: rgba(255,255,255,0.6);">Automated Paystack billing — cancel anytime from your dashboard</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Savings Calculator Interactive Component -->
+    <div class="cs-right relative z-10 rounded-[2rem] p-8 lg:p-10" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 30px 60px rgba(0,0,0,0.4);">
+      <h3 class="text-xl font-bold text-white mb-6">Estimate Your Subscription Savings</h3>
+      
+      <!-- Calculator Inputs -->
+      <div class="flex flex-col gap-6 mb-8">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-white/50 mb-2">Select Subscription</label>
+          <select id="calc-sub" class="w-full bg-[#05080F] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-white">
+            {% for cervice in cervices %}
+              <option value="{{ cervice.id }}" 
+                      data-price="{{ cervice.standard_price }}" 
+                      data-max-people="{{ cervice.max_people }}"
+                      data-name="{{ cervice.name }}">
+                {{ cervice.name }}
+              </option>
+            {% empty %}
+              <option value="">No cervices available</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <div class="flex justify-between text-xs font-semibold text-white/50 mb-2">
+            <span>Active Users (People Sharing)</span>
+            <span id="calc-count-val" class="text-white font-bold">1 / 5 people</span>
+          </div>
+          <input id="calc-slider" type="range" min="1" max="5" value="1" class="w-full accent-white cursor-pointer">
+        </div>
+      </div>
+
+      <!-- Calculation Output Display -->
+      <div class="rounded-2xl p-6 text-center flex flex-col gap-3" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);">
+        <div>
+          <span id="selected-cervice-title" class="text-sm font-semibold text-white/80 block">Select a cervice</span>
+        </div>
+        <div>
+          <span class="text-xs uppercase tracking-wider block text-white/40 mb-1">Your Share Price</span>
+          <div id="calc-price-per-person" class="text-3xl lg:text-4xl font-black text-white">₦0</div>
+        </div>
+        <div class="pt-3 border-t border-white/10 flex justify-around text-xs text-white/60">
+          <div>Full Price: <span id="calc-full-price" class="text-white font-semibold">₦0</span></div>
+          <div>You Save: <span id="calc-savings" class="text-emerald-400 font-bold">₦0</span></div>
+        </div>
+      </div>
+
+<a href="/marketplace/" class="w-full mt-6 py-3.5 rounded-full font-black text-sm text-center block transition-all hover:scale-[1.02]" style="background: #ffffff; color: #000000;">
+  Start Saving Now
+</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- GSAP & Animation Script -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    lucide.createIcons();
+    const section = document.getElementById("calculator-section");
+    if (!section) return;
+
+    // Left column staggered entrance animation
+    const leftElements = section.querySelectorAll('.cs-left > *');
+    if (leftElements.length > 0) {
+      gsap.from(leftElements, {
+        x: -60,
+        opacity: 0,
+        duration: 0.9,
+        stagger: 0.12,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top 75%'
+        }
+      });
+    }
+
+    // Right column entrance animation
+    const rightCol = section.querySelector('.cs-right');
+    if (rightCol) {
+      gsap.from(rightCol, {
+        x: 60,
+        opacity: 0,
+        scale: 0.95,
+        duration: 1.1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top 75%'
+        }
+      });
+    }
+
+    // Calculator Elements
+    const cerviceSelect = document.getElementById('calc-sub');
+    const slider = document.getElementById('calc-slider');
+    const countVal = document.getElementById('calc-count-val');
+    const cerviceTitleDisplay = document.getElementById('selected-cervice-title');
+    const pricePerPersonDisplay = document.getElementById('calc-price-per-person');
+    const fullPriceDisplay = document.getElementById('calc-full-price');
+    const savingsDisplay = document.getElementById('calc-savings');
+
+    function updateCalculator() {
+      const selectedOption = cerviceSelect.options[cerviceSelect.selectedIndex];
+      if (!selectedOption || !selectedOption.value) return;
+
+      const cerviceName = selectedOption.getAttribute('data-name');
+      const standardPrice = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+      const maxPeople = parseInt(selectedOption.getAttribute('data-max-people')) || 1;
+
+      // Update slider constraints dynamically based on cervice.max_people
+      slider.max = maxPeople;
+
+      let currentUsers = parseInt(slider.value);
+      if (currentUsers > maxPeople) {
+        currentUsers = maxPeople;
+        slider.value = maxPeople;
+      }
+
+      // Update active users badge counter text
+      countVal.textContent = `${currentUsers} / ${maxPeople} ${currentUsers === 1 ? 'person' : 'people'}`;
+
+      // Calculate cost splitting: standard_price ÷ active_users
+      const perPersonPrice = standardPrice / currentUsers;
+      const savings = standardPrice - perPersonPrice;
+
+      // Render outputs to the DOM
+      cerviceTitleDisplay.textContent = cerviceName;
+      pricePerPersonDisplay.textContent = '₦' + Math.round(perPersonPrice).toLocaleString();
+      fullPriceDisplay.textContent = '₦' + standardPrice.toLocaleString();
+      savingsDisplay.textContent = '₦' + Math.round(savings).toLocaleString();
+    }
+
+    if (cerviceSelect && slider) {
+      cerviceSelect.addEventListener('change', () => {
+        slider.value = 1; // Reset slider to 1 when switching cervices
+        updateCalculator();
+      });
+      slider.addEventListener('input', updateCalculator);
+
+      // Trigger calculation initially on page load
+      updateCalculator();
+    }
+  });
+</script>

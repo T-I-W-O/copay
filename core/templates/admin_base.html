@@ -1,0 +1,46 @@
+{% extends 'navbar.html' %}
+
+{% block content %}
+<!-- CoPay Admin Master Base Layout -->
+<main class="min-h-screen text-white pt-28 pb-24" style="background: #05080F;">
+  <div class="px-4 md:px-8 lg:px-16 max-w-7xl mx-auto w-full space-y-12">
+    
+    <!-- Render Admin Navbar Component -->
+
+
+    <!-- Dynamic Admin Sections Container -->
+    <div class="space-y-12">
+      
+      <!-- Part 3: Balance Board & Quick Overview Metrics -->
+      <div id="overview-section">
+        {% include 'admin_partials/overview.html' %}
+      </div>
+
+      <!-- Part 4: Users Management & Pools Management Tables -->
+      <div class="grid grid-cols-1 gap-12">
+        <div id="users-section">
+          {% include 'admin_partials/users_table.html' %}
+        </div>
+        <div id="pools-section">
+          {% include 'admin_partials/pools_table.html' %}
+        </div>
+      </div>
+
+      <!-- Part 5: Disputes, Payment History & Services Configuration -->
+      <div class="space-y-12">
+        <div id="disputes-section">
+          {% include 'admin_partials/disputes_table.html' %}
+        </div>
+        <div id="payments-section">
+          {% include 'admin_partials/payments_table.html' %}
+        </div>
+        <div id="services-section">
+          {% include 'admin_partials/services_table.html' %}
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+{% endblock %}

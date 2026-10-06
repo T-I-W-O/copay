@@ -1,0 +1,124 @@
+{% extends 'navbar.html' %}
+
+{% block content %}
+<!-- CoPay Payment Receipt Page -->
+<main class="min-h-screen text-white pt-24 pb-24" style="background: #05080F;">
+  <div class="px-4 md:px-8 lg:px-16 max-w-xl mx-auto w-full space-y-8">
+    
+    <!-- Receipt Card Container -->
+    <div class="rounded-[2rem] p-6 md:p-10 space-y-8 shadow-2xl relative overflow-hidden" 
+         style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+      
+      <!-- Top Title & Success Status -->
+      <div class="text-center space-y-3">
+        <span class="text-xs font-bold uppercase tracking-widest text-white/40 block">Payment Receipt</span>
+        
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span>✓</span> 
+          {% if payment.kind == 'earning' %}
+            Payment Completed
+          {% else %}
+            Refund Completed
+          {% endif %}
+        </div>
+
+        <div class="pt-2">
+          <span class="text-3xl md:text-4xl font-black text-emerald-400 block">
+            {% if payment.kind == 'earning' %}+{% else %}-{% endif %}₦{{ payment.amount|floatformat:2 }}
+          </span>
+          <h2 class="text-sm font-bold text-white mt-1">{{ payment.get_kind_display }} Payout</h2>
+          <p class="text-xs text-white/50">{{ payment.pool.service.name }} Pool</p>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="border-t border-white/10"></div>
+
+      <!-- TRANSACTION DETAILS -->
+      <div class="space-y-4">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-white/40">Transaction Details</h3>
+        
+        <div class="space-y-3 text-xs">
+          <div class="flex justify-between items-center">
+            <span class="text-white/50">Transaction type</span>
+            <span class="font-semibold text-white">{{ payment.get_kind_display }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-white/50">Status</span>
+            <span class="font-semibold text-emerald-400">Completed</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-white/50">Date</span>
+            <span class="font-semibold text-white">{{ payment.created_at|date:"F d, Y" }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-white/50">Time</span>
+            <span class="font-semibold text-white">{{ payment.created_at|time:"g:i A" }}</span>
+          </div>
+          <div class="flex justify-between items-center pt-1">
+            <span class="text-white/50">Payment reference</span>
+            <span class="font-mono text-white/80">{{ payment.payment_reference|default:"N/A" }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="border-t border-white/10"></div>
+
+      <!-- POOL DETAILS -->
+      <div class="space-y-4">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-white/40">Pool Details</h3>
+        
+        <div class="space-y-3 text-xs">
+          <div class="flex justify-between items-center">
+            <span class="text-white/50">Service</span>
+            <span class="font-semibold text-white">{{ payment.pool.service.name }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-white/50">Pool</span>
+            <span class="font-semibold text-white">{{ payment.pool.service.name }} — {{ payment.pool.number_of_users }} Users</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-white/50">Active Users</span>
+            <span class="font-mono text-white/80">{{ payment.pool.current_users }} / {{ payment.pool.number_of_users }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-white/50">Your role</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-white/10 text-white">{{ user_role }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="border-t border-white/10"></div>
+
+      <!-- PAYMENT BREAKDOWN -->
+      <div class="space-y-4">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-white/40">Payment Breakdown</h3>
+        
+        <div class="space-y-3 text-xs">
+          <div class="flex justify-between items-center">
+            <span class="text-white/50">
+              {% if payment.kind == 'earning' %}Pool earning{% else %}Refund amount{% endif %}
+            </span>
+            <span class="font-semibold text-white">₦{{ payment.amount|floatformat:2 }}</span>
+          </div>
+          <div class="flex justify-between items-center pt-2 border-t border-white/5 font-bold">
+            <span class="text-white">Amount received</span>
+            <span class="text-emerald-400 text-sm">₦{{ payment.amount|floatformat:2 }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Back Action Button -->
+      <div class="pt-4">
+        <a href="/history/" class="w-full py-3.5 rounded-xl font-bold text-xs uppercase tracking-widest text-center block transition-all hover:scale-[1.01] bg-white text-black shadow-lg">
+          Back to Payment History
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+{% endblock %}

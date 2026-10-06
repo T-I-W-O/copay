@@ -1,0 +1,87 @@
+<!-- Mobile Navbar Component -->
+<div id="mobile-navbar" class="md:hidden flex items-center">
+  <!-- Toggle Button -->
+  <button 
+    id="mobile-menu-btn"
+    class="text-white p-2 z-50 relative focus:outline-none"
+    aria-label="Toggle menu"
+  >
+    <i data-lucide="menu" id="mobile-menu-icon" class="w-6 h-6"></i>
+  </button>
+
+  <!-- Mobile Drawer Overlay -->
+  <div 
+    id="mobile-drawer"
+    class="fixed inset-0 bg-black/95 backdrop-blur-xl z-40 flex flex-col justify-center items-center gap-8 transition-all duration-300 opacity-0 pointer-events-none"
+  >
+    <a 
+      href="#marketplace" 
+      class="mobile-nav-link text-2xl font-black text-white hover:text-neutral-400 transition-colors"
+    >
+      Marketplace
+    </a>
+    <a 
+      href="#how-it-works" 
+      class="mobile-nav-link text-2xl font-black text-white hover:text-neutral-400 transition-colors"
+    >
+      How It Works
+    </a>
+    
+    <div class="flex flex-col items-center gap-4 mt-8 w-full px-8">
+      <a href="/auth" class="mobile-nav-link w-full max-w-xs">
+        <button class="w-full text-lg font-bold py-4 rounded-xl transition-colors border border-white/20 text-white hover:bg-white/10">
+          Sign In
+        </button>
+      </a>
+      <a href="/auth" class="mobile-nav-link w-full max-w-xs">
+        <button
+          class="w-full text-lg font-black py-4 rounded-xl transition-all bg-white text-black hover:bg-neutral-200 shadow-[0_4px_20px_rgba(255,255,255,0.15)]"
+        >
+          Get Started
+        </button>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Navbar Interactive Script -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    lucide.createIcons();
+    
+    const menuBtn = document.getElementById("mobile-menu-btn");
+    const drawer = document.getElementById("mobile-drawer");
+    const menuIcon = document.getElementById("mobile-menu-icon");
+    const navLinks = document.querySelectorAll(".mobile-nav-link");
+
+    let isOpen = false;
+
+    function toggleMenu() {
+      isOpen = !isOpen;
+
+      if (isOpen) {
+        drawer.classList.remove("opacity-0", "pointer-events-none");
+        drawer.classList.add("opacity-100", "pointer-events-auto");
+        menuBtn.innerHTML = '<i data-lucide="x" id="mobile-menu-icon" class="w-6 h-6"></i>';
+        document.body.style.overflow = "hidden"; // Prevent background scrolling when open
+      } else {
+        drawer.classList.remove("opacity-100", "pointer-events-auto");
+        drawer.classList.add("opacity-0", "pointer-events-none");
+        menuBtn.innerHTML = '<i data-lucide="menu" id="mobile-menu-icon" class="w-6 h-6"></i>';
+        document.body.style.overflow = "";
+      }
+      lucide.createIcons();
+    }
+
+    if (menuBtn && drawer) {
+      menuBtn.addEventListener("click", toggleMenu);
+
+      // Close drawer when any internal navigation link is clicked
+      navLinks.forEach(link => {
+        link.addEventListener("click", () => {
+          if (isOpen) toggleMenu();
+        });
+      });
+    }
+  });
+</script>

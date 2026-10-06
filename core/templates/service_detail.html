@@ -1,0 +1,254 @@
+{% extends 'navbar.html' %}
+
+{% block content %}
+<!-- CoPay Service Detail & Pools Page -->
+<main class="min-h-screen text-white pt-24 pb-24" style="background: #05080F;">
+  <div class="px-4 md:px-8 lg:px-16 max-w-7xl mx-auto w-full space-y-10">
+    
+    <!-- SECTION 1: Service Information Banner Card -->
+    <div class="rounded-[2.5rem] p-6 md:p-10 shadow-2xl relative overflow-hidden" 
+         style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+      
+      <div class="absolute -right-16 -top-16 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
+        
+        <!-- Service Image & Primary Details -->
+        <div class="flex items-center gap-6">
+          <div class="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-center overflow-hidden shadow-inner flex-shrink-0">
+            {% if service.image %}
+              <img src="{{ service.image.url }}" alt="{{ service.name }}" class="w-full h-full object-cover">
+            {% else %}
+              <img src="https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&q=80&w=200" alt="Placeholder" class="w-full h-full object-cover">
+            {% endif %}
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/25">
+                {{ service.get_category_display }}
+              </span>
+              <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-400 border border-sky-500/25">
+                {{ service.get_type_display }} Type
+              </span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight">{{ service.name }}</h1>
+            <p class="text-xs text-white/50">Manage core parameters, pricing configurations, and connected membership pools.</p>
+          </div>
+        </div>
+
+        <!-- Specs Badge Box & Action Buttons -->
+        <div class="flex flex-col sm:flex-row items-center gap-6">
+          <div class="flex items-center gap-4 bg-white/[0.03] border border-white/10 rounded-2xl p-4 md:p-6">
+            <div class="border-r border-white/10 pr-6">
+              <span class="text-[10px] uppercase font-bold text-white/40 block">Standard Price</span>
+              <span class="text-xl md:text-2xl font-black text-emerald-400 font-mono">₦{{ service.standard_price }}</span>
+            </div>
+            <div class="pl-2">
+              <span class="text-[10px] uppercase font-bold text-white/40 block">Max People</span>
+              <span class="text-xl md:text-2xl font-black text-white font-mono">{{ service.max_people }} Users</span>
+            </div>
+          </div>
+          
+          <!-- Action Buttons Group -->
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <!-- Edit Button -->
+            <button onclick="openEditModal()" class="flex-1 sm:flex-initial px-5 py-4 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+              <span>Edit</span>
+            </button>
+
+            <!-- Delete Button -->
+            <button onclick="openDeleteModal()" class="flex-1 sm:flex-initial px-4 py-4 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2" title="Delete Service">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- SECTION 2: Table of Pools Under This Service -->
+    <div class="rounded-[2rem] p-6 md:p-8 space-y-6 shadow-2xl" 
+         style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+      
+      <!-- Table Header & Search Toolbar -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-white/10">
+        <div>
+          <h3 class="text-base font-bold text-white">Pools Under This Service</h3>
+          <span class="text-xs text-white/40">Showing all open, closed, cancelled, or completed pools linked to {{ service.name }}</span>
+        </div>
+        <div class="w-full sm:w-auto">
+          <input type="text" id="poolSearchInput" onkeyup="filterPools()" placeholder="Search pool ID or host..." 
+                 class="w-full sm:w-64 bg-white/[0.03] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/40">
+        </div>
+      </div>
+
+      <!-- Pools Table Wrapper -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse" id="poolsTable">
+          <thead>
+            <tr class="border-b border-white/10 text-[10px] uppercase tracking-wider text-white/45">
+              <th class="pb-3 font-semibold">Pool ID</th>
+              <th class="pb-3 font-semibold">Host</th>
+              <th class="pb-3 font-semibold">Type</th>
+              <th class="pb-3 font-semibold text-center">Active Members</th>
+              <th class="pb-3 font-semibold text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5 text-xs font-medium">
+            {% for pool in pools %}
+              <tr class="hover:bg-white/[0.02] transition-colors pool-row cursor-pointer" onclick="window.location='{% url 'market_detail' pool.id %}'">
+                <td class="py-4 font-mono text-white/60 pool-id">#CP-{{ pool.id }}</td>
+                <td class="py-4 font-bold text-white pool-host">{{ pool.host }}</td>
+                <td class="py-4">
+                  {% if pool.is_public %}
+                    <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20">Public</span>
+                  {% else %}
+                    <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20">Private</span>
+                  {% endif %}
+                </td>
+                <td class="py-4 text-center font-mono text-white">{{ pool.active_members }} / {{ pool.number_of_users }}</td>
+                <td class="py-4 text-right">
+                  <span class="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold 
+                    {% if pool.status == 'completed' %}text-emerald-400 bg-emerald-500/10 border border-emerald-500/20
+                    {% elif pool.status == 'open' %}text-sky-400 bg-sky-500/10 border border-sky-500/20
+                    {% elif pool.status == 'cancelled' %}text-red-400 bg-red-500/10 border border-red-500/20
+                    {% else %}text-amber-400 bg-amber-500/10 border border-amber-500/20{% endif %}">
+                    {{ pool.status|title }}
+                  </span>
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="py-8 text-center text-white/40">No pools found under this service.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<!-- EDIT SERVICE MODAL -->
+<div id="editServiceModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden">
+  <div class="rounded-[2.5rem] p-6 md:p-8 w-full max-w-lg shadow-2xl relative border border-white/10" style="background: #0b101c;">
+    
+    <div class="flex justify-between items-center pb-4 border-b border-white/10 mb-6">
+      <h3 class="text-lg font-bold text-white">Edit Service Information</h3>
+      <button onclick="closeEditModal()" class="text-white/40 hover:text-white text-sm font-bold">✕</button>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="edit_service">
+      
+      <div>
+        <label class="block text-[10px] uppercase font-bold text-white/40 mb-1">Service Name</label>
+        <input type="text" name="name" value="{{ service.name }}" required class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-white/40">
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-white/40 mb-1">Category</label>
+          <select name="category" class="w-full bg-[#0b101c] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-white/40">
+            {% for key, val in service.Category.choices %}
+              <option value="{{ key }}" {% if service.category == key %}selected{% endif %}>{{ val }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-white/40 mb-1">Service Type (Locked)</label>
+          <input type="text" disabled value="{{ service.get_type_display }}" class="w-full bg-white/[0.01] border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white/40 cursor-not-allowed">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-white/40 mb-1">Standard Price (₦)</label>
+          <input type="number" step="0.01" name="standard_price" value="{{ service.standard_price }}" required class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-white/40">
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-white/40 mb-1">Max People</label>
+          <input type="number" name="max_people" value="{{ service.max_people }}" required class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-white/40">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[10px] uppercase font-bold text-white/40 mb-1">Service Image</label>
+        <input type="file" name="image" class="w-full text-xs text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-600 file:text-white hover:file:bg-purple-500 cursor-pointer">
+      </div>
+
+      <div class="flex justify-end gap-3 pt-4 border-t border-white/10">
+        <button type="button" onclick="closeEditModal()" class="px-5 py-2.5 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 text-xs font-bold transition-all">Cancel</button>
+        <button type="submit" class="px-6 py-2.5 rounded-xl bg-purple-600 text-white hover:bg-purple-500 text-xs font-bold transition-all shadow-lg">Save Changes</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- DELETE SERVICE CONFIRMATION MODAL -->
+<div id="deleteServiceModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden">
+  <div class="rounded-[2.5rem] p-6 md:p-8 w-full max-w-md shadow-2xl relative border border-white/10 space-y-6" style="background: #0b101c;">
+    
+    <div class="flex justify-between items-center pb-4 border-b border-white/10">
+      <h3 class="text-lg font-bold text-red-400">Delete Service</h3>
+      <button onclick="closeDeleteModal()" class="text-white/40 hover:text-white text-sm font-bold">✕</button>
+    </div>
+
+    <div class="space-y-2">
+      <p class="text-xs text-white/70 leading-relaxed">
+        Are you sure you want to delete <strong class="text-white">{{ service.name }}</strong>? This action is permanent and may affect all attached pools.
+      </p>
+    </div>
+
+    <form method="POST" class="flex justify-end gap-3 pt-2">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="delete_service">
+      <button type="button" onclick="closeDeleteModal()" class="px-5 py-2.5 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 text-xs font-bold transition-all">Cancel</button>
+      <button type="submit" class="px-6 py-2.5 rounded-xl bg-red-600 text-white hover:bg-red-500 text-xs font-bold transition-all shadow-lg">Yes, Delete</button>
+    </form>
+
+  </div>
+</div>
+
+<!-- JAVASCRIPT FOR SEARCH & MODAL CONTROL -->
+<script>
+  function openEditModal() {
+    document.getElementById('editServiceModal').classList.remove('hidden');
+  }
+
+  function closeEditModal() {
+    document.getElementById('editServiceModal').classList.add('hidden');
+  }
+
+  function openDeleteModal() {
+    document.getElementById('deleteServiceModal').classList.remove('hidden');
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteServiceModal').classList.add('hidden');
+  }
+
+  function filterPools() {
+    let input = document.getElementById('poolSearchInput').value.toLowerCase();
+    let rows = document.querySelectorAll('.pool-row');
+
+    rows.forEach(row => {
+      let poolId = row.querySelector('.pool-id').textContent.toLowerCase();
+      let host = row.querySelector('.pool-host').textContent.toLowerCase();
+      if (poolId.includes(input) || host.includes(input)) {
+        row.style.display = "";
+      } else {
+        row.style.display = "none";
+      }
+    });
+  }
+</script>
+{% endblock %}

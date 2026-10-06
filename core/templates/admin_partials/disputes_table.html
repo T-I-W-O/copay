@@ -1,0 +1,149 @@
+<!-- CoPay Admin - Disputes Section -->
+<div class="rounded-[2rem] p-6 md:p-8 space-y-6 shadow-2xl" 
+     style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+  
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-white/10">
+    <div>
+      <h3 class="text-base font-bold text-white">Dispute Cases</h3>
+      <span class="text-xs text-white/40">Review logged user disputes and handle offline mediation statuses</span>
+    </div>
+    <div class="w-full sm:w-auto">
+      <input type="text" id="dispute-search-input" placeholder="Search dispute or pool..." 
+             class="w-full sm:w-64 bg-white/[0.03] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/40">
+    </div>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="border-b border-white/10 text-[10px] uppercase tracking-wider text-white/45">
+          <th class="pb-3 font-semibold">Dispute ID & Name</th>
+          <th class="pb-3 font-semibold">Related Pool</th>
+          <th class="pb-3 font-semibold">Opened By</th>
+          <th class="pb-3 font-semibold">Against</th>
+          <th class="pb-3 font-semibold text-right">Status</th>
+        </tr>
+      </thead>
+      <tbody id="disputes-table-body" class="divide-y divide-white/5 text-xs font-medium">
+        <!-- Dynamically injected via JavaScript -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Disputes Pagination Controls -->
+  <div id="disputes-pagination-container" class="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-white/10 text-xs text-white/50 hidden">
+    <span id="disputes-pagination-info">Showing 0-0 of 0 disputes</span>
+    <div class="flex items-center gap-2 mt-2 sm:mt-0">
+      <button id="disputes-prev-btn" onclick="changeDisputePage(-1)" class="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:cursor-not-allowed transition-all">Previous</button>
+      <span id="disputes-page-indicator" class="px-3 py-1.5 font-mono text-white">1 / 1</span>
+      <button id="disputes-next-btn" onclick="changeDisputePage(1)" class="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:cursor-not-allowed transition-all">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript Component for Disputes Search & Pagination -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const allDisputes = JSON.parse('{{ disputes_json|safe }}');
+    let filteredDisputes = [...allDisputes];
+    let currentDisputePage = 1;
+    const rowsPerDisputePage = 10;
+
+    const tableBody = document.getElementById("disputes-table-body");
+    const searchInput = document.getElementById("dispute-search-input");
+    const paginationContainer = document.getElementById("disputes-pagination-container");
+    const paginationInfo = document.getElementById("disputes-pagination-info");
+    const pageIndicator = document.getElementById("disputes-page-indicator");
+    const prevBtn = document.getElementById("disputes-prev-btn");
+    const nextBtn = document.getElementById("disputes-next-btn");
+
+    function truncateReason(text) {
+      if (!text) return "";
+      return text.length > 50 ? text.substring(0, 50) + "..." : text;
+    }
+
+    function renderDisputesTable() {
+      tableBody.innerHTML = "";
+
+      if (filteredDisputes.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-white/40">No dispute cases found matching your search.</td></tr>`;
+        paginationContainer.classList.add("hidden");
+        return;
+      }
+
+      const totalPages = Math.ceil(filteredDisputes.length / rowsPerDisputePage);
+      if (currentDisputePage > totalPages) currentDisputePage = 1;
+
+      const start = (currentDisputePage - 1) * rowsPerDisputePage;
+      const end = start + rowsPerDisputePage;
+      const paginatedDisputes = filteredDisputes.slice(start, end);
+
+      paginatedDisputes.forEach(dispute => {
+        // Status Badge Styling
+        let statusBadge = "";
+        const statusLower = dispute.status.toLowerCase();
+        if (statusLower === "open") {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20">Open</span>`;
+        } else if (statusLower === "resolved") {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">Resolved</span>`;
+        } else {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20">${dispute.status}</span>`;
+        }
+
+        const truncatedReason = truncateReason(dispute.reason);
+
+        const row = document.createElement("tr");
+        // Added cursor-pointer and row click handler for dispute detail view
+        row.className = "hover:bg-white/[0.04] transition-colors cursor-pointer";
+        row.onclick = function() {
+          window.location.href = `/dispute/${dispute.id}/`;
+        };
+
+        row.innerHTML = `
+          <td class="py-4 font-bold text-white">
+            <span>#DSP-${dispute.id} - ${dispute.name}</span>
+            <span class="text-[10px] text-white/40 block font-normal">${truncatedReason}</span>
+          </td>
+          <td class="py-4 text-white/85 font-medium">${dispute.poolName}</td>
+          <td class="py-4 text-white/70 font-mono">${dispute.openedBy}</td>
+          <td class="py-4 text-white/70 font-mono">${dispute.againstUser}</td>
+          <td class="py-4 text-right">${statusBadge}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      // Pagination Display Handler
+      if (filteredDisputes.length > rowsPerDisputePage) {
+        paginationContainer.classList.remove("hidden");
+        paginationInfo.textContent = `Showing ${start + 1}-${Math.min(end, filteredDisputes.length)} of ${filteredDisputes.length} disputes`;
+        pageIndicator.textContent = `${currentDisputePage} / ${totalPages}`;
+        prevBtn.disabled = currentDisputePage === 1;
+        nextBtn.disabled = currentDisputePage === totalPages;
+      } else {
+        paginationContainer.classList.add("hidden");
+      }
+    }
+
+    // Live Search Filter for Dispute Name or Pool Name
+    searchInput.addEventListener("input", function (e) {
+      const query = e.target.value.toLowerCase().trim();
+      filteredDisputes = allDisputes.filter(d => 
+        d.name.toLowerCase().includes(query) || d.poolName.toLowerCase().includes(query) || d.reason.toLowerCase().includes(query)
+      );
+      currentDisputePage = 1;
+      renderDisputesTable();
+    });
+
+    // Global Pagination Action Trigger
+    window.changeDisputePage = function (direction) {
+      const totalPages = Math.ceil(filteredDisputes.length / rowsPerDisputePage);
+      currentDisputePage += direction;
+      if (currentDisputePage < 1) currentDisputePage = 1;
+      if (currentDisputePage > totalPages) currentDisputePage = totalPages;
+      renderDisputesTable();
+    };
+
+    // Initial Render
+    renderDisputesTable();
+  });
+</script>

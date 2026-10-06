@@ -1,0 +1,171 @@
+<!-- CoPay Admin - See All Pools Section -->
+<div class="rounded-[2rem] p-6 md:p-8 space-y-6 shadow-2xl" 
+     style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+  
+  <!-- Header & Filters Toolbar -->
+  <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 pb-4 border-b border-white/10">
+    <div>
+      <h3 class="text-base font-bold text-white">Pools Directory</h3>
+      <span class="text-xs text-white/40">Inspect all active, closed, completed, and public/private pools</span>
+    </div>
+
+    <!-- Filter Pills Toolbar -->
+    <div id="pool-filters" class="flex flex-wrap items-center gap-1.5">
+      <span data-filter="all" class="pool-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-black cursor-pointer transition-all">All Pools</span>
+      <span data-filter="open" class="pool-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 cursor-pointer transition-all">Open</span>
+      <span data-filter="close" class="pool-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 cursor-pointer transition-all">Closed</span>
+      <span data-filter="completed" class="pool-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 cursor-pointer transition-all">Completed</span>
+      <span data-filter="cancelled" class="pool-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 cursor-pointer transition-all">Cancelled</span>
+      <span data-filter="public" class="pool-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 cursor-pointer transition-all">Public</span>
+      <span data-filter="private" class="pool-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 cursor-pointer transition-all">Private</span>
+    </div>
+  </div>
+
+  <!-- Pools Table Wrapper -->
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="border-b border-white/10 text-[10px] uppercase tracking-wider text-white/45">
+          <th class="pb-3 font-semibold">Service</th>
+          <th class="pb-3 font-semibold">Host</th>
+          <th class="pb-3 font-semibold">Type</th>
+          <th class="pb-3 font-semibold text-center">Members</th>
+          <th class="pb-3 font-semibold text-right">Status</th>
+        </tr>
+      </thead>
+      <tbody id="pools-table-body" class="divide-y divide-white/5 text-xs font-medium">
+        <!-- Dynamically injected via JavaScript -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Controls Footer -->
+  <div id="pools-pagination-container" class="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-white/10 text-xs text-white/50 hidden">
+    <span id="pools-pagination-info">Showing 0-0 of 0 pools</span>
+    <div class="flex items-center gap-2 mt-2 sm:mt-0">
+      <button id="pools-prev-btn" onclick="changePoolPage(-1)" class="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:cursor-not-allowed transition-all">Previous</button>
+      <span id="pools-page-indicator" class="px-3 py-1.5 font-mono text-white">1 / 1</span>
+      <button id="pools-next-btn" onclick="changePoolPage(1)" class="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:cursor-not-allowed transition-all">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript Component for Pools Filtering and Pagination -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const allPools = JSON.parse('{{ pools_json|safe }}');
+    let filteredPools = [...allPools];
+    let currentPoolPage = 1;
+    const rowsPerPoolPage = 10;
+    let activeFilterType = "all";
+
+    const tableBody = document.getElementById("pools-table-body");
+    const paginationContainer = document.getElementById("pools-pagination-container");
+    const paginationInfo = document.getElementById("pools-pagination-info");
+    const pageIndicator = document.getElementById("pools-page-indicator");
+    const prevBtn = document.getElementById("pools-prev-btn");
+    const nextBtn = document.getElementById("pools-next-btn");
+    const filterButtons = document.querySelectorAll(".pool-filter-btn");
+
+    function renderPoolsTable() {
+      tableBody.innerHTML = "";
+
+      if (filteredPools.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-white/40">No pools found for this filter.</td></tr>`;
+        paginationContainer.classList.add("hidden");
+        return;
+      }
+
+      const totalPages = Math.ceil(filteredPools.length / rowsPerPoolPage);
+      if (currentPoolPage > totalPages) currentPoolPage = 1;
+
+      const start = (currentPoolPage - 1) * rowsPerPoolPage;
+      const end = start + rowsPerPoolPage;
+      const paginatedPools = filteredPools.slice(start, end);
+
+      paginatedPools.forEach(pool => {
+        // Type Badge styling
+        const typeBadge = pool.isPublic 
+          ? `<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20">Public</span>`
+          : `<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20">Private</span>`;
+
+        // Status Badge styling
+        let statusBadge = "";
+        const statusLower = pool.status.toLowerCase();
+        if (statusLower === "open") {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20">Open</span>`;
+        } else if (statusLower === "close") {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20">Closed</span>`;
+        } else if (statusLower === "completed") {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">Completed</span>`;
+        } else if (statusLower === "cancelled") {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold text-red-400 bg-red-500/10 border border-red-500/20">Cancelled</span>`;
+        }
+
+        const row = document.createElement("tr");
+        // Added cursor-pointer and full row click navigation to market detail URL
+        row.className = "hover:bg-white/[0.04] transition-colors cursor-pointer";
+        row.onclick = function() {
+          window.location.href = `/market/${pool.id}/`;
+        };
+
+        row.innerHTML = `
+          <td class="py-4 font-bold text-white">${pool.service}</td>
+          <td class="py-4 text-white/80">${pool.host}</td>
+          <td class="py-4">${typeBadge}</td>
+          <td class="py-4 text-center font-mono text-white">${pool.activeMembers} / ${pool.maxUsers}</td>
+          <td class="py-4 text-right">${statusBadge}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      // Pagination Controls setup
+      if (filteredPools.length > rowsPerPoolPage) {
+        paginationContainer.classList.remove("hidden");
+        paginationInfo.textContent = `Showing ${start + 1}-${Math.min(end, filteredPools.length)} of ${filteredPools.length} pools`;
+        pageIndicator.textContent = `${currentPoolPage} / ${totalPages}`;
+        prevBtn.disabled = currentPoolPage === 1;
+        nextBtn.disabled = currentPoolPage === totalPages;
+      } else {
+        paginationContainer.classList.add("hidden");
+      }
+    }
+
+    // Filter Button Click Listeners
+    filterButtons.forEach(btn => {
+      btn.addEventListener("click", function () {
+        filterButtons.forEach(b => {
+          b.className = "pool-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 cursor-pointer transition-all";
+        });
+        this.className = "pool-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-black cursor-pointer transition-all";
+
+        activeFilterType = this.getAttribute("data-filter");
+        currentPoolPage = 1;
+
+        if (activeFilterType === "all") {
+          filteredPools = [...allPools];
+        } else if (activeFilterType === "public") {
+          filteredPools = allPools.filter(p => p.isPublic === true);
+        } else if (activeFilterType === "private") {
+          filteredPools = allPools.filter(p => p.isPublic === false);
+        } else {
+          filteredPools = allPools.filter(p => p.status.toLowerCase() === activeFilterType);
+        }
+
+        renderPoolsTable();
+      });
+    });
+
+    // Global Pagination Action
+    window.changePoolPage = function (direction) {
+      const totalPages = Math.ceil(filteredPools.length / rowsPerPoolPage);
+      currentPoolPage += direction;
+      if (currentPoolPage < 1) currentPoolPage = 1;
+      if (currentPoolPage > totalPages) currentPoolPage = totalPages;
+      renderPoolsTable();
+    };
+
+    // Initial render
+    renderPoolsTable();
+  });
+</script>

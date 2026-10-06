@@ -1,0 +1,221 @@
+{% extends 'navbar.html' %}
+
+{% block content %}
+<!-- Full Marketplace Page -->
+<main class="min-h-screen text-white pt-24 pb-20" style="background: #05080F;">
+  <div class="px-4 md:px-8 lg:px-16 max-w-7xl mx-auto w-full">
+    
+    <!-- Page Header & Search Bar -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
+      <div>
+        <p class="text-sm font-bold tracking-widest uppercase mb-3 text-white/75">Explore</p>
+        <h1 class="font-black text-white mb-2" style="font-size: clamp(2.2rem, 4vw, 3.5rem);">Browse Available Pools</h1>
+        <p class="text-sm text-white/60 max-w-xl">Stop paying full price for subscriptions. Join a verified pool, split the bill, and get premium access for a fraction of the cost.</p>
+      </div>
+
+      <!-- Search Bar Form with Clear Button -->
+      <form method="GET" action="" class="w-full md:w-auto flex items-center">
+        <div class="relative w-full md:w-85">
+          <input type="text" 
+                 name="q" 
+                 value="{{ search_query }}" 
+                 placeholder="Search service or host..." 
+                 class="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-4 pr-24 py-3 text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/40 transition-all">
+          <input type="hidden" name="category" value="{{ selected_category }}">
+          
+          <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+            {% if search_query %}
+              <a href="?category={{ selected_category }}" class="text-xs font-bold text-white/50 hover:text-white px-2 py-1 rounded-lg bg-white/5 transition-colors" title="Clear search">
+                Clear
+              </a>
+            {% endif %}
+            <button type="submit" class="text-xs font-bold text-black bg-white px-3 py-1.5 rounded-xl transition-all hover:bg-white/90">
+              Search
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Category Filters Navigation -->
+    <div class="flex gap-2 flex-wrap mb-12">
+      <a href="?category=all{% if search_query %}&q={{ search_query }}{% endif %}" 
+         class="px-4 py-2 rounded-full text-xs font-bold transition-all {% if selected_category == 'all' or not selected_category %}bg-white text-black{% else %}text-white/60 hover:text-white bg-white/[0.05] border border-white/10{% endif %}">
+        All
+      </a>
+      <a href="?category=video{% if search_query %}&q={{ search_query }}{% endif %}" 
+         class="px-4 py-2 rounded-full text-xs font-semibold transition-all {% if selected_category == 'video' %}bg-white text-black font-bold{% else %}text-white/60 hover:text-white bg-white/[0.05] border border-white/10{% endif %}">
+        Video
+      </a>
+      <a href="?category=music{% if search_query %}&q={{ search_query }}{% endif %}" 
+         class="px-4 py-2 rounded-full text-xs font-semibold transition-all {% if selected_category == 'music' %}bg-white text-black font-bold{% else %}text-white/60 hover:text-white bg-white/[0.05] border border-white/10{% endif %}">
+        Music
+      </a>
+      <a href="?category=aitool{% if search_query %}&q={{ search_query }}{% endif %}" 
+         class="px-4 py-2 rounded-full text-xs font-semibold transition-all {% if selected_category == 'aitool' %}bg-white text-black font-bold{% else %}text-white/60 hover:text-white bg-white/[0.05] border border-white/10{% endif %}">
+        AI Tools
+      </a>
+      <a href="?category=software{% if search_query %}&q={{ search_query }}{% endif %}" 
+         class="px-4 py-2 rounded-full text-xs font-semibold transition-all {% if selected_category == 'software' %}bg-white text-black font-bold{% else %}text-white/60 hover:text-white bg-white/[0.05] border border-white/10{% endif %}">
+        Software
+      </a>
+      <a href="?category=gaming{% if search_query %}&q={{ search_query }}{% endif %}" 
+         class="px-4 py-2 rounded-full text-xs font-semibold transition-all {% if selected_category == 'gaming' %}bg-white text-black font-bold{% else %}text-white/60 hover:text-white bg-white/[0.05] border border-white/10{% endif %}">
+        Gaming
+      </a>
+      <a href="?category=other{% if search_query %}&q={{ search_query }}{% endif %}" 
+         class="px-4 py-2 rounded-full text-xs font-semibold transition-all {% if selected_category == 'other' %}bg-white text-black font-bold{% else %}text-white/60 hover:text-white bg-white/[0.05] border border-white/10{% endif %}">
+        Other
+      </a>
+    </div>
+
+    <!-- Marketplace Pools Grid -->
+    {% if pools %}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        {% for pool in pools %}
+          {% with contributors_count=pool.contributor_count max_seats=pool.number_of_users %}
+          {% with remaining_seats=max_seats|add:"-"|add:contributors_count %}
+          
+            <a href="/market/{{ pool.id }}/" 
+               class="ms-card rounded-[1.5rem] p-6 flex flex-col justify-between transition-all hover:border-white/40 block group relative overflow-hidden" 
+               style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); text-decoration: none;">
+              
+              <div>
+                <!-- Card Top Info -->
+                <div class="flex justify-between items-center mb-4 gap-2">
+                  <div class="flex items-center gap-2">
+                    {% if pool.service.image %}
+                      <img src="{{ pool.service.image.url }}" alt="{{ pool.service.name }}" class="w-6 h-6 rounded-md object-cover">
+                    {% else %}
+                      <div class="w-6 h-6 rounded-md bg-white/10 text-white font-bold text-xs flex items-center justify-center border border-white/20">
+                        {{ pool.service.name|slice:":1"|upper }}
+                      </div>
+                    {% endif %}
+                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/10 text-white border border-white/20 flex items-center gap-1.5">
+                      {{ pool.service.name }}
+                      <!-- Private Pool Indicator (Padlock) -->
+                      {% if not pool.is_public %}
+                        <svg class="w-3 h-3 text-red-400 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" title="Private Pool">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                      {% endif %}
+                    </span>
+                  </div>
+                  
+                  <!-- Status Indicator -->
+                  {% if contributors_count >= max_seats %}
+                    <span class="text-[10px] uppercase font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full">Full</span>
+                  {% else %}
+                    <span class="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">Open</span>
+                  {% endif %}
+                </div>
+
+                <h3 class="text-lg font-bold text-white mb-1 group-hover:text-white/90 transition-colors">{{ pool.service.name }} Shared Pool</h3>
+                <p class="text-xs mb-4">
+                  {% if pool.host == request.user %}
+                    <span class="text-emerald-400 font-semibold">Host: You</span>
+                  {% else %}
+                    <span class="text-white/40">Host: @{{ pool.host.username }}</span>
+                  {% endif %}
+                </p>
+                
+                <!-- Occupancy & Progress Bar -->
+                <div class="mb-6 space-y-2">
+                  <div class="flex justify-between items-center text-xs text-white/80 font-semibold">
+                    <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-white/70"></span> {{ contributors_count }}/{{ max_seats }} slots filled</span>
+                    <span class="text-white/40 text-[11px]">{{ remaining_seats }} left</span>
+                  </div>
+                  <div class="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                    <div class="bg-white h-full rounded-full transition-all duration-500" 
+                         style="width: {% widthratio contributors_count max_seats 100 %}%;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <!-- Pricing details -->
+                <!-- Pricing details & Dynamic Action Button -->
+              <div class="flex justify-between items-end mb-4 pt-2 border-t border-white/5">
+                <div>
+                  <span class="text-[10px] uppercase tracking-wider block text-white/40">Price / Seat</span>
+                  <span class="text-xl font-black text-white">₦{{ pool.amount_per_person|floatformat:2 }} <span class="text-xs font-normal text-white/40">/mo</span></span>
+                </div>
+              </div>
+              
+              {% if pool.host == request.user or pool.user_is_member %}
+                <!-- Host or Existing Member -->
+                <span class="w-full py-2.5 rounded-xl font-bold text-xs text-center block transition-all group-hover:scale-[1.02] bg-white/10 text-white border border-white/20">
+                  See Pool
+                </span>
+              {% elif contributors_count >= max_seats %}
+                <!-- Pool is Full and user is not a member -->
+                <span class="w-full py-2.5 rounded-xl font-bold text-xs text-center block bg-white/10 text-white/40 cursor-not-allowed">
+                  Pool Full
+                </span>
+              {% else %}
+                <!-- Open to Join -->
+                <span class="w-full py-2.5 rounded-xl font-bold text-xs text-center block transition-all group-hover:scale-[1.02] bg-white text-black">
+                  Join Pool
+                </span>
+              {% endif %}
+              
+              <!-- Small grey disclaimer text below every box -->
+              <p class="text-[10px] text-white/40 px-2 leading-relaxed mt-2">
+                Account sharing may violate service terms. Use at your own risk. Escrow applied.
+              </p>
+            </div>
+          </a>
+
+          {% endwith %}
+          {% endwith %}
+        {% endfor %}
+      </div>
+
+      <!-- Paginator Numbers Box -->
+      {% if pools.paginator.num_pages > 1 %}
+        <div class="flex justify-center items-center gap-2 mt-16 pt-8 border-t border-white/10">
+          
+          <!-- Previous Button -->
+          {% if pools.has_previous %}
+            <a href="?page={{ pools.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
+               class="px-4 py-2 rounded-xl text-xs font-bold bg-white/[0.03] border border-white/10 text-white hover:bg-white/10 transition-all">
+              Prev
+            </a>
+          {% endif %}
+
+          <!-- Page Numbers -->
+          {% for num in pools.paginator.page_range %}
+            {% if pools.number == num %}
+              <span class="w-10 h-10 rounded-xl text-xs font-bold bg-white text-black flex items-center justify-center shadow-lg">
+                {{ num }}
+              </span>
+            {% elif num > pools.number|add:'-3' and num < pools.number|add:'3' %}
+              <a href="?page={{ num }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
+                 class="w-10 h-10 rounded-xl text-xs font-semibold bg-white/[0.03] border border-white/10 text-white/70 hover:text-white hover:bg-white/10 flex items-center justify-center transition-all">
+                {{ num }}
+              </a>
+            {% endif %}
+          {% endfor %}
+
+          <!-- Next Button -->
+          {% if pools.has_next %}
+            <a href="?page={{ pools.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
+               class="px-4 py-2 rounded-xl text-xs font-bold bg-white/[0.03] border border-white/10 text-white hover:bg-white/10 transition-all">
+              Next
+            </a>
+          {% endif %}
+
+        </div>
+      {% endif %}
+
+    {% else %}
+      <!-- Empty State -->
+      <div class="text-center py-28 bg-white/[0.02] border border-white/10 rounded-[2rem]">
+        <p class="text-white/60 text-base font-semibold mb-2">No pools match your search or filter.</p>
+        <a href="?category=all" class="text-xs text-white underline font-bold">Reset filters</a>
+      </div>
+    {% endif %}
+
+  </div>
+</main>
+{% endblock %}

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoPay - Maximize Your Money on Shared Subscriptions</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- GSAP & ScrollTrigger CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-[#05080F] text-white min-h-screen overflow-x-hidden font-sans">
+
+  <!-- Page Loader Component -->
+  {% include 'PageLoader.html' %}
+
+  <!-- Sticky Header -->
+  <header
+    class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-8 lg:px-16 py-4 transition-all duration-300"
+    style="background: rgba(5,8,15,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1);"
+  >
+    <div class="text-xl font-black text-white tracking-tight flex items-center gap-1 z-50 relative">
+      Co<span class="text-white/60">Pay</span>
+    </div>
+    
+    <nav class="hidden md:flex items-center gap-8 text-sm font-semibold" style="color: rgba(255,255,255,0.5);">
+      <a href="#marketplace" class="hover:text-white transition-colors">Marketplace</a>
+      <a href="#how-it-works" class="hover:text-white transition-colors">How It Works</a>
+    </nav>
+    
+    <!-- Desktop Action Buttons -->
+    <div class="hidden md:flex items-center gap-4">
+      
+        {% if request.user.is_authenticated %}
+        <a href="{% url 'dashboard' %}">
+<button class="text-xs font-bold px-3 py-1.5 rounded-full bg-[#111827] text-white border border-white/20 shadow-lg transition-colors hover:bg-white/10">
+  Hi, {{ request.user.username }}
+</button>
+</a>
+{% endif %}
+      {% if request.user.is_authenticated %}
+            <a href="logout/">
+        <button
+          class="text-sm font-black px-6 py-2.5 rounded-full transition-all hover:-translate-y-0.5 bg-white text-black"
+          style="box-shadow: 0 4px 14px rgba(255,255,255,0.2);"
+        >
+          Logout
+        </button>
+      </a>
+      {% else %}
+      <a href="signin/">
+        <button
+          class="text-sm font-black px-6 py-2.5 rounded-full transition-all hover:-translate-y-0.5 bg-white text-black"
+          style="box-shadow: 0 4px 14px rgba(255,255,255,0.2);"
+        >
+          Login
+        </button>
+      </a>
+      {% endif %}
+    </div>
+
+    <!-- Mobile Navigation Menu Toggle & Overlay Drawer -->
+    <div class="flex md:hidden items-center gap-3 z-50">
+      <!-- Mobile "Hi, User" button overlapping the page background properly -->
+      
+{% if request.user.is_authenticated %}
+<a href="{% url 'dashboard' %}">
+<button class="text-xs font-bold px-3 py-1.5 rounded-full bg-[#111827] text-white border border-white/20 shadow-lg transition-colors hover:bg-white/10">
+  Hi, {{ request.user.username }}
+</button>
+</a>
+{% endif %}
+      
+
+      <!-- Hamburger Menu Button with background added -->
+      <button 
+        id="mobile-menu-button" 
+        class="p-2 rounded-xl bg-[#111827] border border-white/20 text-white shadow-lg focus:outline-none"
+        aria-label="Toggle Mobile Menu"
+      >
+        <i data-lucide="menu" id="menu-icon" class="w-6 h-6"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Dropdown / Slide-out Menu Drawer containing Marketplace, How It Works, and Login -->
+    <div 
+      id="mobile-menu" 
+      class="fixed inset-x-0 top-0 pt-24 pb-8 px-6 bg-[#090d16] border-b border-white/10 shadow-2xl flex flex-col gap-6 transform -translate-y-full transition-transform duration-300 ease-in-out md:hidden z-40"
+    >
+      <nav class="flex flex-col gap-4 text-lg font-semibold text-white/70">
+        <a href="#marketplace" class="mobile-nav-link hover:text-white transition-colors py-2 border-b border-white/5">Marketplace</a>
+        <a href="#how-it-works" class="mobile-nav-link hover:text-white transition-colors py-2 border-b border-white/5">How It Works</a>
+      </nav>
+
+
+      <div class="flex flex-col gap-3 pt-2">
+  {% if request.user.is_authenticated %}
+    <a href="{% url 'logout' %}" class="w-full">
+      <button class="w-full text-sm font-black px-6 py-3 rounded-xl bg-red-600 text-white shadow-lg text-center hover:bg-red-700 transition-colors">
+        Logout
+      </button>
+    </a>
+  {% else %}
+    <a href="{% url 'signin' %}" class="w-full">
+      <button class="w-full text-sm font-black px-6 py-3 rounded-xl bg-white text-black shadow-lg text-center">
+        Login
+      </button>
+    </a>
+  {% endif %}
+</div>
+    </div>
+  </header>
+
+  <!-- Page Sections -->
+  <main>
+    {% include 'HeroSection.html' %}
+    {% include 'MarqueeTicker.html' %}
+    
+    <div id="how-it-works">
+      {% include 'HowItWorks.html' %}
+    </div>
+    
+    {% include 'StatsSection.html' %}
+    
+    <div id="marketplace">
+      {% include 'MarketplaceSection.html' %}
+    </div>
+    
+    {% include 'CalculatorSection.html' %}
+    {% include 'FAQSection.html' %}
+    {% include 'CTASection.html' %}
+  </main>
+
+<!-- Footer -->
+<footer class="py-12 px-6 text-center md:text-left" style="border-top: 1px solid rgba(255,255,255,0.1); background: #030509;">
+  <div class="max-w-6xl mx-auto flex flex-col gap-8">
+    
+
+    <!-- Main Footer Content -->
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+      
+      <!-- Left / Brand Info & Privacy Policy -->
+      <div class="flex flex-col gap-2">
+        <h3 class="text-white font-medium text-lg mb-0">CoPay</h3>
+        <div class="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 text-sm text-white/40">
+          <p>© {% now "Y" %} CoPay · Proudly Built for Nigeria</p>
+          <span class="hidden md:inline text-white/20">•</span>
+          <a href="/privacy/" class="hover:text-white transition-colors underline underline-offset-4">Privacy Policy</a>
+        </div>
+      </div>
+
+      <!-- Right / Contact Info with SVGs -->
+      <div class="flex flex-col sm:flex-row items-center gap-6 text-sm text-white/60">
+        
+        <!-- Email -->
+        <a href="mailto:{{ site_info.email }}" class="flex items-center gap-2.5 hover:text-white transition-colors">
+          <span class="p-2 rounded-full bg-white/5 border border-white/10 text-white/80">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+          </span>
+          {{ site_info.email }}
+        </a>
+
+        <!-- Phone Number -->
+        <a href="tel:+{{ site_info.phone }}" class="flex items-center gap-2.5 hover:text-white transition-colors">
+          <span class="p-2 rounded-full bg-white/5 border border-white/10 text-white/80">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+            </svg>
+          </span>
+          +{{ site_info.phone }}
+        </a>
+
+      </div>
+
+    </div>
+
+  </div>
+</footer>
+
+  <!-- Global Script Initializations -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Initialize GSAP ScrollTrigger plugin
+      if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+        gsap.registerPlugin(ScrollTrigger);
+      }
+      // Initialize Lucide icons across all components
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+
+      // Mobile Menu Toggle Logic
+      const menuButton = document.getElementById('mobile-menu-button');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const menuIcon = document.getElementById('menu-icon');
+      const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+      let isMenuOpen = false;
+
+      function toggleMenu() {
+        isMenuOpen = !isMenuOpen;
+        if (isMenuOpen) {
+          mobileMenu.classList.remove('-translate-y-full');
+          mobileMenu.classList.add('translate-y-0');
+          menuIcon.setAttribute('data-lucide', 'x');
+        } else {
+          mobileMenu.classList.remove('translate-y-0');
+          mobileMenu.classList.add('-translate-y-full');
+          menuIcon.setAttribute('data-lucide', 'menu');
+        }
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+      }
+
+      if (menuButton && mobileMenu) {
+        menuButton.addEventListener('click', toggleMenu);
+        mobileNavLinks.forEach(link => {
+          link.addEventListener('click', () => {
+            if (isMenuOpen) toggleMenu();
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

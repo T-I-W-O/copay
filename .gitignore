@@ -1,0 +1,24 @@
+# Secrets
+.env
+*.env
+!.env.example
+
+# Data exports and local DBs
+backup.json
+db.sqlite3
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+env/
+
+# Django generated
+staticfiles/
+media/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store

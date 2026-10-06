@@ -1,0 +1,104 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}CoPay{% endblock %}</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- GSAP & ScrollTrigger CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+    @keyframes pulse-slow {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    .float-pulse {
+      animation: pulse-slow 3s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-[#05080F] text-white min-h-screen overflow-x-hidden font-sans flex flex-col">
+
+    {% if request.user|has_group:"admin" %}
+        {% include "admin_navbar.html" %}
+    {% else %}
+        {% include "customer_navbar.html" %}
+    {% endif %}
+
+<main class="pt-20">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+  <footer class="mt-auto py-12 px-6 text-center md:text-left" style="border-top: 1px solid rgba(255,255,255,0.1); background: #030509;">
+    <div class="max-w-6xl mx-auto flex flex-col gap-8">
+      
+      <!-- Disclaimer Banner -->
+      <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 text-yellow-200/90 text-xs sm:text-sm text-center md:text-left flex flex-col md:flex-row items-center gap-3">
+        <span class="p-2 rounded-full bg-yellow-500/20 text-yellow-400 shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </span>
+        <p>
+          <strong class="text-yellow-400 font-medium">Disclaimer:</strong> Account sharing may violate service provider terms — use at your own risk. CoPayNG acts solely as an escrow and sharing facilitator.
+        </p>
+      </div>
+
+      <!-- Main Footer Content -->
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        
+        <!-- Left / Brand Info & Privacy Policy -->
+        <div class="flex flex-col gap-2">
+          <h3 class="text-white font-medium text-lg mb-0">CoPay</h3>
+          <div class="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 text-sm text-white/40">
+            <p>© {% now "Y" %} CoPay · Proudly Built for Nigeria</p>
+            <span class="hidden md:inline text-white/20">•</span>
+            <a href="/privacy/" class="hover:text-white transition-colors underline underline-offset-4">Privacy Policy</a>
+          </div>
+        </div>
+
+        <!-- Right / Contact Info with SVGs -->
+        <div class="flex flex-col sm:flex-row items-center gap-6 text-sm text-white/60">
+          
+          <!-- Email -->
+          <a href="mailto:{{ site_info.email }}" class="flex items-center gap-2.5 hover:text-white transition-colors">
+            <span class="p-2 rounded-full bg-white/5 border border-white/10 text-white/80">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+            </span>
+            {{ site_info.email }}
+          </a>
+
+          <!-- Phone Number -->
+          <a href="tel:+{{ site_info.phone }}" class="flex items-center gap-2.5 hover:text-white transition-colors">
+            <span class="p-2 rounded-full bg-white/5 border border-white/10 text-white/80">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+              </svg>
+            </span>
+            +{{ site_info.phone }}
+          </a>
+
+        </div>
+
+      </div>
+
+    </div>
+  </footer>
+
+</body>
+</html>

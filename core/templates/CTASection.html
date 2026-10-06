@@ -1,0 +1,121 @@
+<!-- CTA Section Component -->
+<section
+  id="cta-section"
+  class="py-20 lg:py-36 px-4 md:px-8 lg:px-16 relative overflow-hidden text-center"
+  style="background: #05080F; border-top: 1px solid rgba(255,255,255,0.1);"
+>
+  <!-- Background Glow Orb -->
+  <div
+    class="cta-bg-glow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full pointer-events-none"
+    style="background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 65%);"
+  ></div>
+  
+  <!-- Subtle Dot Grid Background Pattern -->
+  <div
+    class="absolute inset-0 opacity-[0.015] pointer-events-none"
+    style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 44px 44px;"
+  ></div>
+
+  <!-- Content Container -->
+  <div class="max-w-4xl mx-auto relative z-10 flex flex-col items-center gap-8">
+    
+    <!-- Top Pill Badge -->
+    <div class="cta-item inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold bg-white/5 border border-white/15 text-white/90">
+      Built for Nigeria
+    </div>
+
+    <!-- Heading -->
+    <h2 class="cta-item font-black text-white leading-[0.92]" style="font-size: clamp(3rem, 7vw, 6rem);">
+      Ready to maximize<br />
+      <span class="text-white/60">
+        your money?
+      </span>
+    </h2>
+
+    <!-- Subtitle -->
+    <p class="cta-item text-xl max-w-lg leading-relaxed text-white/50">
+      Join thousands of Nigerians saving on premium subscriptions with total security.
+    </p>
+
+    <!-- Action Buttons -->
+<div class="cta-item flex flex-col sm:flex-row w-full sm:w-auto gap-4 mt-6">
+
+  {% if not user.is_authenticated %}
+    <a href="/signup/" class="w-full sm:w-auto">
+      <button
+        class="cta-main-btn group w-full sm:w-auto justify-center flex items-center gap-3 px-10 py-5 rounded-full font-black text-lg transition-all hover:-translate-y-1 bg-white text-black"
+        style="box-shadow: 0 0 30px rgba(255,255,255,0.2);"
+      >
+        Create Free Account
+        <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+      </button>
+    </a>
+  {% endif %}
+
+  <a href="/marketplace/" class="w-full sm:w-auto">
+    <button
+      class="w-full sm:w-auto px-10 py-5 rounded-full font-bold text-lg text-white transition-all bg-white/5 backdrop-blur-sm border border-white/15 hover:border-white/50"
+    >
+      Browse Pools
+    </button>
+  </a>
+
+</div>
+
+    <!-- Footer Perks Checkmarks -->
+    <div class="cta-item flex flex-wrap justify-center gap-8 text-sm text-white/30">
+      <span>✓ Free to join</span>
+      <span>✓ Cancel anytime</span>
+      <span>✓ 100% Escrow protected</span>
+      <span>✓ Nigerian company</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- GSAP Animation & Lucide Init Script -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    lucide.createIcons();
+    const section = document.getElementById("cta-section");
+    if (!section) return;
+
+    // Background Glow scale-in entrance animation
+    gsap.from(section.querySelector('.cta-bg-glow'), {
+      scale: 0,
+      opacity: 0,
+      duration: 1.8,
+      ease: 'power4.out',
+      scrollTrigger: {
+        trigger: section,
+        start: 'top 80%'
+      }
+    });
+
+    // Content items staggered entrance animation
+    gsap.from(section.querySelectorAll('.cta-item'), {
+      y: 60,
+      opacity: 0,
+      duration: 0.9,
+      stagger: 0.12,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: section,
+        start: 'top 75%'
+      }
+    });
+
+    // Infinite pulsating box-shadow animation for the main button
+    gsap.to('.cta-main-btn', {
+      boxShadow: '0 0 50px rgba(255,255,255,0.4), 0 0 100px rgba(255,255,255,0.1)',
+      duration: 2,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut',
+      scrollTrigger: {
+        trigger: section,
+        start: 'top 80%'
+      }
+    });
+  });
+</script>

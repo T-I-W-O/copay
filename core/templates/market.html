@@ -1,0 +1,459 @@
+{% extends 'navbar.html' %}
+
+{% block content %}
+<!-- CoPay Personalized Subscription Pool Page (State: Not Joined / Potential Contributor) -->
+<main class="min-h-screen text-white pt-24 pb-24" style="background: #05080F;">
+  <div class="px-4 md:px-8 lg:px-16 max-w-5xl mx-auto w-full space-y-8">
+    
+    <!-- 1. Pool Link — Top -->
+<div class="rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+         style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+      <div class="flex items-center gap-2 overflow-hidden">
+        <span class="text-xs uppercase tracking-wider text-white/40 shrink-0">Pool Link:</span>
+        <span id="pool-link-text" class="text-xs font-mono text-white/80 truncate"></span>
+      </div>
+      <button id="copy-pool-link-btn" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-white shrink-0">
+        Copy Link
+      </button>
+    </div>
+
+<!-- 2. Participation Status & Progress Indicator -->
+  <div class="rounded-[2rem] p-6 md:p-8 relative overflow-hidden"
+       style="background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid rgba(255,255,255,0.15);">
+    
+    {% if is_host %}
+      <!-- Host View -->
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <span class="text-xs uppercase tracking-widest font-bold text-white/50 block mb-1">Your Relationship</span>
+          <h2 class="text-2xl font-black text-white">Creator</h2>
+        </div>
+        <span class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          Host
+        </span>
+      </div>
+    {% else %}
+      <!-- Contributor View -->
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div>
+          <span class="text-xs uppercase tracking-widest font-bold text-white/50 block mb-1">Your Relationship</span>
+          <h2 class="text-2xl font-black text-white">{% if is_member %}Joined{% else %}Not Joined{% endif %}</h2>
+        </div>
+        <span class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-white/10 text-white border border-white/20">
+          {% if is_member %}Contributor{% else %}Potential Contributor{% endif %}
+        </span>
+      </div>
+
+      <!-- Progress Stepper -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 border-t border-white/10">
+        
+<!-- Step 1 -->
+        <div class="p-3 rounded-xl border text-center transition-all {% if current_step == 1 %}bg-white/15 border-white/30 text-white shadow-lg{% elif current_step > 1 %}bg-white/5 border-white/10 text-white/80{% else %}bg-white/[0.02] border-white/10 opacity-50{% endif %}">
+          <span class="text-[10px] uppercase tracking-wider text-white/40 block mb-1">Step 1</span>
+          <span class="text-xs font-bold">1. {% if current_step > 1 or is_member %}Joined{% else %}Not Joined{% endif %}</span>
+        </div>
+        <!-- Step 2 -->
+        <div class="p-3 rounded-xl border text-center transition-all {% if current_step == 2 %}bg-white/15 border-white/30 text-white shadow-lg{% elif current_step > 2 %}bg-white/5 border-white/10 text-white/80{% else %}bg-white/[0.02] border-white/10 opacity-50{% endif %}">
+          <span class="text-[10px] uppercase tracking-wider text-white/40 block mb-1">Step 2</span>
+          <span class="text-xs font-semibold">2. {% if current_step > 2 or is_paid %}Joined & Paid{% else %}Join & Pay{% endif %}</span>
+        </div>
+        <!-- Step 3 -->
+        <div class="p-3 rounded-xl border text-center transition-all {% if current_step == 3 %}bg-white/15 border-white/30 text-white shadow-lg{% elif current_step > 3 %}bg-white/5 border-white/10 text-white/80{% else %}bg-white/[0.02] border-white/10 opacity-50{% endif %}">
+          <span class="text-[10px] uppercase tracking-wider text-white/40 block mb-1">Step 3</span>
+          <span class="text-xs font-semibold">3. {% if current_step > 3 or confirmed_access %}Vault Unlocked{% else %}Unlock Vault{% endif %}</span>
+        </div>
+        <!-- Step 4 -->
+        <div class="p-3 rounded-xl border text-center transition-all {% if current_step == 4 %}bg-white/15 border-white/30 text-white shadow-lg{% else %}bg-white/[0.02] border-white/10 opacity-50{% endif %}">
+          <span class="text-[10px] uppercase tracking-wider text-white/40 block mb-1">Step 4</span>
+          <span class="text-xs font-semibold">4. {% if confirmed_access %}Access Confirmed{% else %}Confirm Access{% endif %}</span>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+    <!-- Main Content Layout Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- Left Column: Pool Info & Join Action (2 Columns) -->
+      <div class="lg:col-span-2 space-y-8">
+        
+       <!-- 3. Pool Information Card -->
+        <div class="rounded-[1.5rem] p-6 md:p-8 space-y-6" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              {% if pool.service.image %}
+                <img src="{{ pool.service.image.url }}" alt="{{ pool.service.name }}" class="w-10 h-10 rounded-xl object-cover">
+              {% else %}
+                <div class="w-10 h-10 rounded-xl bg-red-600 text-white font-bold flex items-center justify-center text-lg">
+                  {{ pool.service.name|slice:":1"|upper }}
+                </div>
+              {% endif %}
+              <div>
+                <h3 class="text-xl font-bold text-white">{{ pool.service.name }} Shared Pool</h3>
+                <span class="text-xs text-white/50">Subscription Pool Details</span>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+    <!-- Dynamic Status Badge (Red if cancelled, Emerald otherwise) -->
+    {% if not pool.active %}
+      <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20">
+        {{ pool.get_status_display }}
+      </span>
+    {% else %}
+      <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        {{ pool.get_status_display }}
+      </span>
+    {% endif %}
+
+
+  </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-white/5">
+            <div>
+              <span class="text-[10px] uppercase tracking-wider text-white/40 block">Price / Person</span>
+              <span class="text-base font-black text-white">₦{{ pool.amount_per_person|floatformat:2 }} <span class="text-xs font-normal text-white/40">/time</span></span>
+            </div>
+            <div>
+              <span class="text-[10px] uppercase tracking-wider text-white/40 block">Total Pool Value</span>
+              <span class="text-base font-bold text-white">₦{{ pool.price|floatformat:2 }}</span>
+            </div>
+            <div>
+              <span class="text-[10px] uppercase tracking-wider text-white/40 block">Members</span>
+              <span class="text-base font-bold text-white">{{ current_users_count }} / {{ pool.number_of_users }}</span>
+            </div>
+            <div>
+              <span class="text-[10px] uppercase tracking-wider text-white/40 block">Available Slots</span>
+              <span class="text-base font-bold text-emerald-400">{{ available_slots }} Slot{{ available_slots|pluralize }} Left</span>
+            </div>
+            <div>
+              <span class="text-[10px] uppercase tracking-wider text-white/40 block">Duration</span>
+              <span class="text-base font-semibold text-white">{{ pool.duration_days }} Days</span>
+            </div>
+            <div>
+              <span class="text-[10px] uppercase tracking-wider text-white/40 block">Remaining Days</span>
+              <span class="text-base font-semibold text-white">{{ remaining_days }} Days</span>
+            </div>
+            <div>
+              <span class="text-[10px] uppercase tracking-wider text-white/40 block">Start Date</span>
+              <span class="text-xs font-medium text-white/80">{{ start_date|date:"M j, Y" }}</span>
+            </div>
+{% if pool.active %} <div> <span class="text-[10px] uppercase tracking-wider text-white/40 block">End Date</span> <span class="text-xs font-medium text-white/80"> {{ end_date|date:"M j, Y" }} </span> </div> {% else %} <div> <span class="text-[10px] uppercase tracking-wider text-white/40 block">Ended At</span> <span class="text-xs font-medium text-red-400"> {{ pool.end_date|date:"M j, Y, g:i A" }} </span> </div> {% endif %}
+          </div>
+        </div>
+
+
+
+      <!-- 5. Pool Members -->
+<div class="rounded-[1.5rem] p-6 md:p-8 space-y-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+
+  <div class="flex justify-between items-center">
+    <h3 class="text-lg font-bold text-white">Pool Members</h3>
+    <span class="text-xs font-semibold text-white/65">
+      {{ current_users_count }} / {{ pool.number_of_users }} slots filled
+    </span>
+  </div>
+
+  <div class="space-y-3">
+
+    <!-- Host Entry -->
+    <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-white/10 text-white font-bold text-xs flex items-center justify-center">
+          {{ pool.host.username|slice:":2"|upper }}
+        </div>
+
+        <div>
+          <span class="text-xs font-bold text-white block">
+            @{{ pool.host.username }}
+
+            <span class="text-[10px] font-normal px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 ml-1">
+              Host
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <span class="text-[10px] text-white/40">
+        Verified Creator
+      </span>
+    </div>
+
+    <!-- Active Contributors Loop -->
+    {% for member in pool_contributors %}
+      <div class="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5">
+
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-white/5 text-white/60 font-bold text-xs flex items-center justify-center">
+            {{ member.user.username|slice:":2"|upper }}
+          </div>
+
+          <div>
+            <span class="text-xs font-semibold text-white block">
+              @{{ member.user.username }}
+            </span>
+          </div>
+        </div>
+
+        <span class="text-[10px] {% if member.payment_status == 'paid' %}text-emerald-400{% else %}text-amber-400{% endif %} font-bold uppercase tracking-wider">
+          {{ member.get_payment_status_display }}
+        </span>
+
+      </div>
+    {% endfor %}
+
+    <!-- Dynamic Empty Slots -->
+    <div id="empty-slot-container"></div>
+
+  </div>
+</div>
+        <!-- 6. Join Section (User has NOT joined) -->
+        {% include 'join.html' %}
+
+        {% include 'market_contd.html' %}
+
+      </div>
+
+      <!-- Right Column: Host Information Card -->
+      <div class="space-y-8">
+        
+        <!-- 4. Host Information Card -->
+        <div class="rounded-[1.5rem] p-6 md:p-8 space-y-6 sticky top-24" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+          <div>
+            <span class="text-[10px] uppercase tracking-widest font-bold text-white/40 block mb-1">Pool Host Profile</span>
+            <div class="flex items-center gap-3 mt-3">
+              <div class="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center font-black text-white text-base">
+                {{ pool.host.username|slice:":2"|upper }}
+              </div>
+              <div>
+                <h4 class="text-base font-bold text-white">{{ pool.host.get_full_name|default:pool.host.username }}</h4>
+                <span class="text-xs text-white/50">@{{ pool.host.username }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Details -->
+          <div class="space-y-3 pt-3 border-t border-white/5 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="text-white/40">Email:</span>
+              <span class="font-medium text-white">{{ pool.host.email|default:"Not provided" }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-white/40">Phone Number:</span>
+              <span class="font-medium text-white">{{ pool.host.profile.phone_number|default:"+234 812 345 6789" }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-white/40">WhatsApp:</span>
+              <span class="font-medium text-white">{{ pool.host.profile.whatsapp|default:"+234 812 345 6789" }}</span>
+            </div>
+          </div>
+
+          <!-- Reputation Metrics -->
+          <div class="space-y-3 pt-4 border-t border-white/5">
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-white/60">Host Rating</span>
+              <span class="text-sm font-bold text-white">⭐ {{ host_reputation.rating }} <span class="text-[10px] text-white/40 font-normal">({{ host_reputation.total_ratings }})</span></span>
+            </div>
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-white/60">Success Rate</span>
+              <span class="font-bold text-emerald-400">{{ host_reputation.success_rate }}%</span>
+            </div>
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-white/60">Successful Pools</span>
+              <span class="font-bold text-white">{{ host_reputation.successful_pools }}</span>
+            </div>
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-white/60">Resolved Disputes</span>
+              <span class="font-bold text-white">{{ host_reputation.resolved_disputes }}</span>
+            </div>
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-white/60">Unresolved Disputes</span>
+              <span class="font-bold {% if host_reputation.unresolved_disputes > 0 %}text-amber-400{% else %}text-emerald-400{% endif %}">{{ host_reputation.unresolved_disputes }}</span>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <span class="block text-center text-[10px] text-white/40 px-2 leading-relaxed">
+              Host integrity metrics are verified independently through CoPay escrow audits.
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+      {% if not is_host and membership and membership.active and membership.payment_status == 'paid' %}
+    {% if not user_payment or not user_payment.ecrow_code %}
+        {% include 'escrow_modal.html' %}
+    {% endif %}
+{% endif %}
+ 
+<!-- Host Emergency Cancel Section (Visible ONLY to Host) -->
+  <!-- Host Emergency Cancel Section (Visible ONLY to Host and if NOT cancelled) -->
+{% if def_host and has_no_active_members and not pool.active %}
+
+
+<div class="rounded-[1.5rem] p-6 md:p-8 mt-12 space-y-4 border border-red-500/20 bg-red-500/[0.02]">
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div>
+      <span class="text-[10px] uppercase tracking-widest font-bold text-red-400 block mb-1">Danger Zone</span>
+      <h3 class="text-xl font-bold text-white">Cancel Subscription Pool</h3>
+      <p class="text-xs text-white/50 mt-0.5">
+        Terminating this pool will immediately call off active slot acquisitions and push automated refunds to all participating contributors.
+      </p>
+    </div>
+    <button type="button" id="trigger-cancel-pool-modal-btn" class="w-full md:w-auto px-6 py-3 rounded-xl font-bold text-xs bg-red-500 text-black hover:bg-red-400 transition shadow-lg shrink-0">
+      Cancel Pool & Refund All
+    </button>
+  </div>
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div id="cancel-pool-modal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden">
+  <div class="w-full max-w-md p-6 md:p-8 rounded-[1.5rem] bg-[#121212] border border-red-500/30 space-y-6 shadow-2xl">
+    <div class="space-y-2 text-center">
+      <div class="w-12 h-12 mx-auto rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 text-xl font-bold">
+        ⚠️
+      </div>
+      <h4 class="text-lg font-bold text-white">Are you sure you want to proceed?</h4>
+      <p class="text-xs text-white/60 leading-relaxed">
+        The pool will be cancelled permanently and all contributors will be refunded. This action cannot be reversed.
+      </p>
+    </div>
+
+    <div id="cancel-modal-error" class="text-xs text-red-400 text-center hidden"></div>
+
+    <div class="flex gap-3 pt-2">
+      <button type="button" id="abort-cancel-btn" class="flex-1 py-3 rounded-xl text-xs font-bold bg-white/5 text-white/70 hover:bg-white/10 transition">
+        No, Keep Pool
+      </button>
+      <button type="button" id="confirm-cancel-pool-btn" class="flex-1 py-3 rounded-xl text-xs font-bold bg-red-500 text-black hover:bg-red-400 transition shadow-lg">
+        Yes, Cancel Pool
+      </button>
+    </div>
+  </div>
+</div>
+{% endif %}
+  </div>
+</main>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // ----------------------------------------------------
+  // 1. Copy Pool Link Logic
+  // ----------------------------------------------------
+  const linkSpan = document.getElementById('pool-link-text');
+  const copyBtn = document.getElementById('copy-pool-link-btn');
+  
+  const currentUrl = window.location.href;
+  if (linkSpan) {
+    linkSpan.textContent = currentUrl;
+  }
+
+  if (copyBtn && linkSpan) {
+    copyBtn.addEventListener('click', async function() {
+      try {
+        await navigator.clipboard.writeText(currentUrl);
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        copyBtn.classList.add('bg-white/20');
+        
+        setTimeout(() => {
+          copyBtn.textContent = originalText;
+          copyBtn.classList.remove('bg-white/20');
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy text: ', err);
+      }
+    });
+  }
+
+  // ----------------------------------------------------
+  // 2. Pool Members Slot Calculation Logic
+  // ----------------------------------------------------
+  const maxUsers = {{ pool.number_of_users }};
+  const memberCount = {{ current_users_count }};
+  const totalFilled = memberCount; // including host
+  const remainingSlots = maxUsers - totalFilled;
+
+  const slotsFilledText = document.getElementById('slots-filled-text');
+  if (slotsFilledText) {
+    slotsFilledText.textContent = `${totalFilled} / ${maxUsers} slots filled`;
+  }
+
+  const emptySlotContainer = document.getElementById('empty-slot-container');
+  if (emptySlotContainer && remainingSlots > 0) {
+    emptySlotContainer.innerHTML = `
+      <div class="flex items-center justify-between p-3 rounded-xl border border-white/10 border-dashed text-center" style="background: rgba(255,255,255,0.01);">
+        <span class="text-xs text-white/40 italic w-full">Available Slot (${remainingSlots} remaining)</span>
+      </div>
+    `;
+  }
+
+  // ----------------------------------------------------
+  // 3. Cancel Pool Modal Logic (AJAX Enabled)
+  // ----------------------------------------------------
+  const triggerBtn = document.getElementById('trigger-cancel-pool-modal-btn');
+  const cancelModal = document.getElementById('cancel-pool-modal');
+  const abortBtn = document.getElementById('abort-cancel-btn');
+  const confirmBtn = document.getElementById('confirm-cancel-pool-btn');
+  const errorDiv = document.getElementById('cancel-modal-error');
+
+  if (triggerBtn && cancelModal) {
+    function toggleModal(show) {
+      if (show) {
+        cancelModal.classList.remove('hidden');
+      } else {
+        cancelModal.classList.add('hidden');
+        if (errorDiv) errorDiv.classList.add('hidden');
+      }
+    }
+
+    triggerBtn.addEventListener('click', () => toggleModal(true));
+    
+    if (abortBtn) {
+      abortBtn.addEventListener('click', () => toggleModal(false));
+    }
+
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', async function() {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Cancelling...';
+        if (errorDiv) errorDiv.classList.add('hidden');
+
+        try {
+          const response = await fetch("{% url 'cancel_pool_ajax' pool.pk %}", {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': '{{ csrf_token }}',
+              'Content-Type': 'application/json'
+            },
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            toggleModal(false);
+            window.location.reload(); // Refresh to display updated cancelled state & earnings
+          } else {
+            if (errorDiv) {
+              errorDiv.textContent = data.error || 'Failed to cancel pool.';
+              errorDiv.classList.remove('hidden');
+            }
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Yes, Cancel Pool';
+          }
+        } catch (err) {
+          console.error('Error:', err);
+          if (errorDiv) {
+            errorDiv.textContent = 'A network error occurred. Please try again.';
+            errorDiv.classList.remove('hidden');
+          }
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Yes, Cancel Pool';
+        }
+      });
+    }
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoPay - Secure Authentication</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Tailwind Custom Theme Configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'fintech-navy': '#05080F',
+            'fintech-slate': '#111827',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen flex w-full bg-white font-sans text-gray-900">
+
+<!-- Left Panel - Branding & Trust Proposition (Hidden on mobile) -->
+  <div class="hidden lg:flex lg:w-1/2 bg-[#05080F] relative overflow-hidden flex-col justify-between p-16 text-white border-r border-white/10">
+    <!-- Background Decorative Glow Blobs -->
+    <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-white/5 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-white/5 rounded-full blur-[100px] pointer-events-none"></div>
+    
+    <div class="relative z-10">
+      <a href="{% url 'landing_page' %}" class="text-3xl font-bold tracking-tight text-white flex items-center gap-1">
+        Co<span class="text-white/60">Pay</span>
+      </a>
+    </div>
+
+    <div class="relative z-10 max-w-lg">
+      <h1 class="text-4xl font-bold leading-tight mb-6">
+        Share premium subscriptions without the financial anxiety.
+      </h1>
+      <p class="text-lg text-white/50 mb-10">
+        Make premium subscriptions more affordable by pooling payments with others — without having to pay the full cost alone.
+      </p>
+
+      <div class="space-y-6">
+        <div class="flex items-center gap-4">
+          <div class="flex-shrink-0 w-12 h-12 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+            <i data-lucide="shield-check" class="text-white w-6 h-6"></i>
+          </div>
+          <div>
+            <h3 class="font-semibold text-white">Controlled Fund Release</h3>
+            <p class="text-sm text-white/40">Contributions are held securely and released according to the pool's rules.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="flex-shrink-0 w-12 h-12 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+            <i data-lucide="lock" class="text-white w-6 h-6"></i>
+          </div>
+          <div>
+            <h3 class="font-semibold text-white">End-to-End Encryption</h3>
+            <p class="text-sm text-white/40">Credentials are secured with AES-256-GCM.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="flex-shrink-0 w-12 h-12 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+            <i data-lucide="zap" class="text-white w-6 h-6"></i>
+          </div>
+          <div>
+            <h3 class="font-semibold text-white">Simple Payment Flow</h3>
+            <p class="text-sm text-white/40">Join a pool, make your contribution, and track your payment status in one place.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="relative z-10 text-sm text-white/30">
+      © <span id="current-year"></span> CoPay. All rights reserved.
+    </div>
+  </div>
+
+ <!-- Right Panel - The Form Container -->
+  <div class="w-full min-h-screen flex items-center justify-center p-8 sm:p-12 lg:p-24 bg-gray-50/50 relative">
+    
+    <div class="absolute top-8 left-8 lg:hidden">
+      <a href="{% url 'landing_page' %}" class="text-2xl font-bold tracking-tight text-[#05080F]">
+        Co<span class="text-gray-400">Pay</span>
+      </a>
+    </div>
+
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-8 sm:p-10">
+      
+      <a 
+        href="/" 
+        class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-[#05080F] mb-8 transition-colors"
+      >
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        Back
+      </a>
+
+      <!-- Form Heading Section -->
+      <div class="mb-8">
+        <h2 id="form-title" class="text-3xl font-bold text-[#05080F] tracking-tight mb-2">
+          Welcome back
+        </h2>
+        <p id="form-subtitle" class="text-sm text-gray-500">
+          Enter your details to access your dashboard.
+        </p>
+      </div>
+      
+      <!-- Notification / Error Banners -->
+      {% if error_message %}
+      <div id="alert-message" class="mb-6 p-4 bg-red-50/50 border border-red-100 text-red-600 rounded-xl text-sm flex items-start gap-2">
+        <span>{{ error_message }}</span>
+      </div>
+      {% else %}
+      <div id="alert-message" class="hidden mb-6 p-4 rounded-xl text-sm flex items-start gap-2"></div>
+      {% endif %}
+
+      <!-- Authentication Form -->
+      <form id="auth-form" method="POST" action="{% url 'signin' %}" class="space-y-5">
+        {% csrf_token %}
+        
+        <!-- First Name / Username Field -->
+        <div id="firstname-field" class="hidden">
+          <label class="block text-sm font-medium text-[#05080F] mb-1.5">Username</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <i data-lucide="user" class="h-5 w-5 text-gray-400"></i>
+            </div>
+            <input 
+              type="text" 
+              name="username"
+              id="firstname-input"
+              value="{{ request.POST.username|default:'' }}"
+              placeholder="John"
+              class="bg-gray-50/50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-black/20 focus:border-black block w-full pl-10 p-3.5 transition-all outline-none"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-[#05080F] mb-1.5">Email Address</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
+            </div>
+            <input 
+              type="email" 
+              name="email"
+              id="email-input"
+              required
+              value="{{ request.POST.email|default:'' }}"
+              placeholder="name@example.com"
+              class="bg-gray-50/50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-black/20 focus:border-black block w-full pl-10 p-3.5 transition-all outline-none"
+            />
+          </div>
+        </div>
+
+        <!-- WhatsApp Number Field -->
+        <div id="whatsapp-field" class="hidden">
+          <label class="block text-sm font-medium text-[#05080F] mb-1.5">WhatsApp Number</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <i data-lucide="phone" class="h-5 w-5 text-gray-400"></i>
+            </div>
+            <input 
+              type="text" 
+              name="whatsapp"
+              id="whatsapp-input"
+              value="{{ request.POST.whatsapp|default:'' }}"
+              placeholder="2348012345678"
+              maxlength="13"
+              class="bg-gray-50/50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-black/20 focus:border-black block w-full pl-10 p-3.5 transition-all outline-none"
+            />
+          </div>
+          <p class="text-xs text-gray-400 mt-1">Must start with 234 followed by 10 digits.</p>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-sm font-medium text-[#05080F]">Password</label>
+            <a href="/forget/" id="forgot-password-link" class="text-xs font-medium text-gray-600 hover:text-[#05080F] transition-colors">
+              Forgot password?
+            </a>
+          </div>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
+            </div>
+            <input 
+              type="password" 
+              name="password"
+              id="password-input"
+              required
+              placeholder="••••••••"
+              class="bg-gray-50/50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-black/20 focus:border-black block w-full pl-10 pr-10 p-3.5 transition-all outline-none"
+            />
+            <button 
+              type="button" 
+              id="toggle-password-btn"
+              class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <i data-lucide="eye" id="password-eye-icon" class="w-5 h-5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- NDPR Checkbox -->
+        <div id="signup-extra-fields" class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 mt-4">
+          <div class="flex items-start bg-gray-50 p-4 rounded-xl border border-gray-100 mt-2">
+            <div class="flex items-center h-5">
+              <input 
+                type="checkbox" 
+                name="consent"
+                id="ndpr-checkbox"
+                class="w-4 h-4 border border-gray-300 rounded bg-white accent-black focus:ring-3 focus:ring-black/30 cursor-pointer"
+              />
+            </div>
+            <label for="ndpr-checkbox" class="ml-3 text-xs text-gray-600 leading-relaxed cursor-pointer">
+              I consent to the collection and processing of my personal data in accordance with the Nigerian Data Protection Regulation (NDPR).
+            </label>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div id="submit-btn-wrapper" class="mt-2">
+          <button type="submit" id="custom-button" class="w-full py-4 text-base font-semibold rounded-xl shadow-lg shadow-[#05080F]/10 transition-all bg-[#05080F] text-white hover:bg-[#05080F]/90 flex items-center justify-center">
+            <span id="button-text">Sign in to account</span>
+          </button>
+        </div>
+      </form>
+
+      <p class="mt-10 text-center text-sm text-gray-500">
+        <span id="auth-switch-text">Don't have an account? </span>
+        <button 
+          type="button"
+          id="auth-mode-toggle" 
+          class="font-semibold text-[#05080F] hover:text-gray-600 transition-colors"
+        >
+          Sign up
+        </button>
+      </p>
+
+    </div>
+  </div>
+
+  <!-- Page Script with State Persistence -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+
+      // Read backend context variable to know if we should default to signup view
+      const serverActiveTab = "{{ active_tab|default:'signin' }}";
+      let isLogin = serverActiveTab !== 'signup';
+      let showPassword = false;
+
+      const toggleBtn = document.getElementById('auth-mode-toggle');
+      const authForm = document.getElementById('auth-form');
+      const formTitle = document.getElementById('form-title');
+      const formSubtitle = document.getElementById('form-subtitle');
+      const buttonText = document.getElementById('button-text');
+      const signupFields = document.getElementById('signup-extra-fields');
+      const firstNameField = document.getElementById('firstname-field');
+      const whatsappField = document.getElementById('whatsapp-field');
+      const firstNameInput = document.getElementById('firstname-input');
+      const whatsappInput = document.getElementById('whatsapp-input');
+      const forgotPasswordLink = document.getElementById('forgot-password-link');
+      const switchText = document.getElementById('auth-switch-text');
+
+      // Function to render correct view based on 'isLogin' state
+      function updateViewMode() {
+        if (isLogin) {
+          authForm.action = "{% url 'signin' %}";
+          formTitle.textContent = "Welcome back";
+          formSubtitle.textContent = "Enter your details to access your dashboard.";
+          buttonText.textContent = "Sign in to account";
+          switchText.textContent = "Don't have an account? ";
+          toggleBtn.textContent = "Sign up";
+          signupFields.classList.add('hidden');
+          firstNameField.classList.add('hidden');
+          whatsappField.classList.add('hidden');
+          firstNameInput.removeAttribute('required');
+          whatsappInput.removeAttribute('required');
+          forgotPasswordLink.style.display = 'block';
+        } else {
+          authForm.action = "{% url 'signup' %}";
+          formTitle.textContent = "Create an account";
+          formSubtitle.textContent = "Start sharing subscriptions securely today.";
+          buttonText.textContent = "Create account";
+          switchText.textContent = "Already have an account? ";
+          toggleBtn.textContent = "Sign in";
+          signupFields.classList.remove('hidden');
+          firstNameField.classList.remove('hidden');
+          whatsappField.classList.remove('hidden');
+          firstNameInput.setAttribute('required', 'true');
+          whatsappInput.setAttribute('required', 'true');
+          forgotPasswordLink.style.display = 'none';
+        }
+      }
+
+      // Initialize view right away on page load
+      updateViewMode();
+
+      // Toggle behavior when user clicks switch button manually
+      toggleBtn.addEventListener('click', () => {
+        isLogin = !isLogin;
+        const alertBox = document.getElementById('alert-message');
+        if (alertBox) alertBox.classList.add('hidden'); // hide error when switching views
+        updateViewMode();
+      });
+
+      // Password Visibility Toggle
+      const passwordInput = document.getElementById('password-input');
+      const togglePasswordBtn = document.getElementById('toggle-password-btn');
+      const passwordEyeIcon = document.getElementById('password-eye-icon');
+
+      togglePasswordBtn.addEventListener('click', () => {
+        showPassword = !showPassword;
+        passwordInput.type = showPassword ? 'text' : 'password';
+        passwordEyeIcon.setAttribute('data-lucide', showPassword ? 'eye-off' : 'eye');
+        lucide.createIcons();
+      });
+    });
+  </script>
+</body>
+</html>

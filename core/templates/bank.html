@@ -1,0 +1,293 @@
+<!-- Modal Overlay Wrapper -->
+<div id="bank-modal-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 px-4">
+  
+  <!-- Modal Card -->
+  <div class="rounded-[1.5rem] p-6 md:p-8 max-w-md w-full relative shadow-2xl overflow-hidden" 
+       style="background: #05080F; border: 1px solid rgba(255,255,255,0.1);">
+       
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-lg font-bold text-white">Link Bank Account</h3>
+    </div>
+
+    <!-- Form Content -->
+    <div class="space-y-4">
+      
+      <!-- Searchable Bank Custom Dropdown -->
+      <div class="relative" id="bank-dropdown-container">
+        <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-semibold">Select Bank</label>
+        
+        <!-- Search Input / Trigger Box -->
+        <div class="relative">
+          <input type="text" id="bank-search-input" placeholder="Search or select your bank..." autocomplete="off"
+                 class="w-full px-4 py-3 rounded-xl text-sm font-semibold text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-all cursor-pointer"
+                 style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+          <input type="hidden" id="bank-code-hidden" value="">
+          
+          <!-- Dropdown Arrow Icon -->
+          <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40 text-xs">
+            ▼
+          </div>
+        </div>
+
+        <!-- Dropdown List Options Box -->
+        <div id="bank-options-list" class="absolute left-0 right-0 mt-2 max-h-56 overflow-y-auto rounded-xl shadow-2xl z-50 hidden custom-scrollbar"
+             style="background: #090E17; border: 1px solid rgba(255,255,255,0.1);">
+          <div class="p-3 text-xs text-white/40 text-center">Loading banks...</div>
+        </div>
+      </div>
+
+      <!-- Account Number Input -->
+      <div>
+        <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-semibold">Account Number</label>
+        <input type="text" id="account-input" maxlength="10" placeholder="Enter 10-digit account number" 
+               class="w-full px-4 py-3 rounded-xl text-sm font-semibold text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-all"
+               style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+               
+        <!-- Response / Status Display -->
+        <div id="account-name-container" class="mt-2 hidden items-center gap-1.5 animate-fadeIn">
+          <span id="status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span id="account-name-text" class="text-xs font-bold text-emerald-400"></span>
+        </div>
+      </div>
+
+      <!-- Save Button -->
+      <div class="pt-4">
+        <button id="save-bank-btn" disabled class="w-full py-3.5 rounded-xl font-bold text-xs text-center block transition-all opacity-50 cursor-not-allowed bg-white text-black shadow-lg">
+          Save Account
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Custom Scrollbar & Logic -->
+<style>
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+</style>
+
+<script>
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  const bankSearchInput = document.getElementById('bank-search-input');
+  const bankCodeHidden = document.getElementById('bank-code-hidden');
+  const bankOptionsList = document.getElementById('bank-options-list');
+  const accountInput = document.getElementById('account-input');
+  const nameContainer = document.getElementById('account-name-container');
+  const nameText = document.getElementById('account-name-text');
+  const statusDot = document.getElementById('status-dot');
+  const saveBtn = document.getElementById('save-bank-btn');
+
+  let allBanks = [];
+  let verifiedAccountName = "";
+
+  // 1. Fetch all Nigerian banks on load (GET request)
+  async function loadBanks() {
+    try {
+      const response = await fetch("{% url 'get_banks' %}");
+      const result = await response.json();
+      if (result.status && result.data) {
+        allBanks = result.data;
+        renderBankOptions(allBanks);
+      } else {
+        bankOptionsList.innerHTML = '<div class="p-3 text-xs text-rose-400 text-center">Failed to load banks</div>';
+      }
+    } catch (err) {
+      bankOptionsList.innerHTML = '<div class="p-3 text-xs text-rose-400 text-center">Failed to load banks</div>';
+    }
+  }
+  loadBanks();
+
+  // Render bank list items dynamically
+  function renderBankOptions(banks) {
+    if (banks.length === 0) {
+      bankOptionsList.innerHTML = '<div class="p-3 text-xs text-white/40 text-center">No banks found</div>';
+      return;
+    }
+
+    bankOptionsList.innerHTML = '';
+    banks.forEach(bank => {
+      const div = document.createElement('div');
+      div.className = "px-4 py-3 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white cursor-pointer transition-colors";
+      div.textContent = bank.name;
+      div.addEventListener('click', () => {
+        bankSearchInput.value = bank.name;
+        bankCodeHidden.value = bank.code;
+        bankOptionsList.classList.add('hidden');
+        
+        // Trigger resolution check if account number is already 10 digits
+        if (accountInput.value.length === 10) {
+          resolveAccount();
+        }
+      });
+      bankOptionsList.appendChild(div);
+    });
+  }
+
+  // Toggle dropdown visibility on input click/focus
+  bankSearchInput.addEventListener('click', () => {
+    bankOptionsList.classList.remove('hidden');
+  });
+
+  // Filter banks as user types in search box
+  bankSearchInput.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
+    bankOptionsList.classList.remove('hidden');
+    bankCodeHidden.value = ""; // Reset code if user types a new search
+    
+    saveBtn.setAttribute('disabled', 'true');
+    saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+    const filtered = allBanks.filter(bank => bank.name.toLowerCase().includes(query));
+    renderBankOptions(filtered);
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!document.getElementById('bank-dropdown-container').contains(e.target)) {
+      bankOptionsList.classList.add('hidden');
+    }
+  });
+
+  // 2. Resolve account number when 10 digits are met + valid bank code is selected
+  async function resolveAccount() {
+    const accountNumber = accountInput.value.trim();
+    const bankCode = bankCodeHidden.value;
+
+    if (!bankCode) {
+      nameContainer.classList.remove('hidden');
+      nameContainer.classList.add('flex');
+      statusDot.className = "w-1.5 h-1.5 rounded-full bg-rose-400";
+      nameText.className = "text-xs font-bold text-rose-400";
+      nameText.textContent = "Please select a bank from the list first.";
+      return;
+    }
+
+    if (accountNumber.length === 10 && bankCode) {
+      nameContainer.classList.remove('hidden');
+      nameContainer.classList.add('flex');
+      statusDot.className = "w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse";
+      nameText.className = "text-xs font-bold text-amber-400";
+      nameText.textContent = "Resolving account...";
+
+      try {
+        const response = await fetch("{% url 'resolve_bank' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken
+          },
+          body: JSON.stringify({ account_number: accountNumber, bank_code: bankCode })
+        });
+        const data = await response.json();
+
+        if (response.ok && data.status) {
+          verifiedAccountName = data.account_name;
+          statusDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400";
+          nameText.className = "text-xs font-bold text-emerald-400";
+          nameText.textContent = verifiedAccountName;
+          
+          saveBtn.removeAttribute('disabled');
+          saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          saveBtn.classList.add('hover:scale-[1.01]');
+        } else {
+          throw new Error(data.message || "Account does not exist");
+        }
+      } catch (err) {
+        verifiedAccountName = "";
+        statusDot.className = "w-1.5 h-1.5 rounded-full bg-rose-400";
+        nameText.className = "text-xs font-bold text-rose-400";
+        nameText.textContent = err.message || "Invalid account details";
+        
+        saveBtn.setAttribute('disabled', 'true');
+        saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        saveBtn.classList.remove('hover:scale-[1.01]');
+      }
+    } else {
+      nameContainer.classList.add('hidden');
+      nameContainer.classList.remove('flex');
+    }
+  }
+
+  accountInput.addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/\D/g, ''); // Numbers only
+    if (e.target.value.length === 10) {
+      resolveAccount();
+    } else {
+      nameContainer.classList.add('hidden');
+      saveBtn.setAttribute('disabled', 'true');
+      saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+  });
+
+  // 3. Save Account and auto-close modal on success
+  // 3. Save Account and auto-close modal on success
+  saveBtn.addEventListener('click', async () => {
+    const accountNumber = accountInput.value.trim();
+    const bankCode = bankCodeHidden.value;
+    const bankName = bankSearchInput.value.trim();
+
+    // Guard: Make sure we have a verified name ready
+    if (!verifiedAccountName) {
+      alert("Please wait for the account to be successfully verified first.");
+      return;
+    }
+
+    saveBtn.textContent = "Saving...";
+    
+    try {
+      const response = await fetch("{% url 'resolve_bank' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrftoken
+        },
+        body: JSON.stringify({ 
+          account_number: accountNumber, 
+          bank_code: bankCode, 
+          bank_name: bankName, // Ensure bank_name is sent
+          account_name: verifiedAccountName
+        })
+      });
+      const data = await response.json();
+
+      if (response.ok && data.status) {
+        document.getElementById('bank-modal-overlay').style.display = 'none';
+        location.reload(); 
+      } else {
+        alert(data.message || "Failed to save account.");
+        saveBtn.textContent = "Save Account";
+      }
+    } catch (err) {
+      alert("An error occurred while saving.");
+      saveBtn.textContent = "Save Account";
+    }
+  });
+</script>

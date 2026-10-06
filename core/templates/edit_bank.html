@@ -1,0 +1,352 @@
+<!-- 5. Account Details Card (Financial Info) -->
+<div class="rounded-[1.5rem] p-6 md:p-8 mt-6" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+  <div class="flex justify-between items-center mb-6">
+    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-white"></span> Bank Account Details
+    </h3>
+    <button onclick="openBankModal()" class="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white/5 hover:bg-white/10 border border-white/10 text-white">
+      Edit Account Details
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+    <div>
+      <span class="text-[10px] uppercase tracking-wider text-white/40 block">Bank Name</span>
+      <span class="text-sm font-semibold text-white">{{ profile.bank|default:"No Bank Added" }}</span>
+    </div>
+    <div>
+      <span class="text-[10px] uppercase tracking-wider text-white/40 block">Account Name</span>
+      <span class="text-sm font-semibold text-white">{{ profile.account_name|default:"N/A" }}</span>
+    </div>
+    <div>
+      <span class="text-[10px] uppercase tracking-wider text-white/40 block">Account Number</span>
+      <span class="text-sm font-semibold text-white font-mono">{{ masked_account_number }}</span>
+    </div>
+    <div>
+      <span class="text-[10px] uppercase tracking-wider text-white/40 block">Verification Status</span>
+      {% if profile.bank_verified %}
+        <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          Verified
+        </span>
+      {% else %}
+        <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          Unverified
+        </span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Bank Edit Modal Overlay Wrapper -->
+<div id="bank-modal-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 px-4 hidden">
+  <div class="rounded-[1.5rem] p-6 md:p-8 max-w-md w-full relative shadow-2xl overflow-hidden" 
+       style="background: #05080F; border: 1px solid rgba(255,255,255,0.1);">
+       
+    <!-- Close Button -->
+    <button onclick="closeBankModal()" class="absolute top-4 right-4 text-white/40 hover:text-white text-sm">✕</button>
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-lg font-bold text-white" id="modal-title-text">Verify Password</h3>
+    </div>
+
+    <!-- STEP 1: Password Verification View -->
+    <div id="modal-step-password" class="space-y-4">
+      <p class="text-xs text-white/60">Please enter your account password to proceed with updating your bank details.</p>
+      <div>
+        <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-semibold">Password</label>
+        <input type="password" id="modal-password-input" placeholder="Enter your password" 
+               class="w-full px-4 py-3 rounded-xl text-sm font-semibold text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-all"
+               style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+        <div id="password-error-text" class="text-xs text-rose-400 mt-2 hidden"></div>
+      </div>
+      <div class="pt-2">
+        <button id="verify-password-btn" onclick="verifyHostPassword()" class="w-full py-3.5 rounded-xl font-bold text-xs text-center block transition-all bg-white text-black shadow-lg">
+          Continue
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Edit Bank Form View (Hidden Initially) -->
+    <div id="modal-step-form" class="space-y-4 hidden">
+      
+      <!-- Former Account Details Display Box -->
+      <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
+        <div class="text-[10px] uppercase tracking-wider text-white/40 font-bold">Current Saved Details</div>
+        <div class="flex justify-between text-xs text-white/80">
+          <span>Name: <strong class="text-white">{{ profile.account_name|default:"N/A" }}</strong></span>
+          <span>Bank: <strong class="text-white">{{ profile.bank|default:"N/A" }}</strong></span>
+        </div>
+        <div class="flex justify-between items-center text-xs text-white/80 pt-1 border-t border-white/5">
+          <span>Acc No: <strong id="plain-acc-display" class="font-mono text-white tracking-wider">••••••••</strong></span>
+          <button type="button" onclick="toggleAccountVisibility()" class="text-white/60 hover:text-white text-[11px] underline">
+            <span id="eye-toggle-text">Show</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Searchable Bank Custom Dropdown -->
+      <div class="relative" id="bank-dropdown-container">
+        <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-semibold">Select New Bank</label>
+        <div class="relative">
+          <input type="text" id="bank-search-input" placeholder="Search or select your bank..." autocomplete="off"
+                 class="w-full px-4 py-3 rounded-xl text-sm font-semibold text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-all cursor-pointer"
+                 style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+          <input type="hidden" id="bank-code-hidden" value="">
+          <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40 text-xs">▼</div>
+        </div>
+        <div id="bank-options-list" class="absolute left-0 right-0 mt-2 max-h-48 overflow-y-auto rounded-xl shadow-2xl z-50 hidden custom-scrollbar"
+             style="background: #090E17; border: 1px solid rgba(255,255,255,0.1);">
+          <div class="p-3 text-xs text-white/40 text-center">Loading banks...</div>
+        </div>
+      </div>
+
+      <!-- Account Number Input -->
+      <div>
+        <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-semibold">New Account Number</label>
+        <input type="text" id="account-input" maxlength="10" placeholder="Enter 10-digit account number" 
+               class="w-full px-4 py-3 rounded-xl text-sm font-semibold text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-all"
+               style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+        <div id="account-name-container" class="mt-2 hidden items-center gap-1.5">
+          <span id="status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span id="account-name-text" class="text-xs font-bold text-emerald-400"></span>
+        </div>
+      </div>
+
+      <!-- Save Button -->
+      <div class="pt-2">
+        <button id="save-bank-btn" disabled class="w-full py-3.5 rounded-xl font-bold text-xs text-center block transition-all opacity-50 cursor-not-allowed bg-white text-black shadow-lg">
+          Save New Account
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+</style>
+
+<script>
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  let allBanks = [];
+  let verifiedAccountName = "";
+  let decryptedPlainAcc = "";
+
+  function openBankModal() {
+    document.getElementById('bank-modal-overlay').classList.remove('hidden');
+    document.getElementById('modal-step-password').classList.remove('hidden');
+    document.getElementById('modal-step-form').classList.add('hidden');
+    document.getElementById('modal-title-text').textContent = "Verify Password";
+    document.getElementById('modal-password-input').value = "";
+    document.getElementById('password-error-text').classList.add('hidden');
+  }
+
+  function closeBankModal() {
+    document.getElementById('bank-modal-overlay').classList.add('hidden');
+  }
+
+  // Step 1: Verify Password via AJAX
+  async function verifyHostPassword() {
+    const password = document.getElementById('modal-password-input').value;
+    const errorDiv = document.getElementById('password-error-text');
+    const btn = document.getElementById('verify-password-btn');
+
+    if (!password) {
+      errorDiv.textContent = "Please enter your password.";
+      errorDiv.classList.remove('hidden');
+      return;
+    }
+
+    btn.textContent = "Verifying...";
+    try {
+      const response = await fetch("{% url 'verify_bank_password' %}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+        body: JSON.stringify({ password: password })
+      });
+      const data = await response.json();
+
+      if (response.ok && data.status) {
+        decryptedPlainAcc = data.decrypted_account;
+        document.getElementById('modal-step-password').classList.add('hidden');
+        document.getElementById('modal-step-form').classList.remove('hidden');
+        document.getElementById('modal-title-text').textContent = "Edit Bank Account Details";
+        loadBanks();
+      } else {
+        errorDiv.textContent = data.message || "Incorrect password.";
+        errorDiv.classList.remove('hidden');
+        btn.textContent = "Continue";
+      }
+    } catch (err) {
+      errorDiv.textContent = "An error occurred. Try again.";
+      errorDiv.classList.remove('hidden');
+      btn.textContent = "Continue";
+    }
+  }
+
+  // Eye toggle for account number reveal
+  let isAccVisible = false;
+  function toggleAccountVisibility() {
+    const accDisplay = document.getElementById('plain-acc-display');
+    const toggleText = document.getElementById('eye-toggle-text');
+    if (!isAccVisible) {
+      accDisplay.textContent = decryptedPlainAcc || "No account found";
+      toggleText.textContent = "Hide";
+      isAccVisible = true;
+    } else {
+      accDisplay.textContent = "••••••••";
+      toggleText.textContent = "Show";
+      isAccVisible = false;
+    }
+  }
+
+  // Bank Fetch & Form Logic
+  const bankSearchInput = document.getElementById('bank-search-input');
+  const bankCodeHidden = document.getElementById('bank-code-hidden');
+  const bankOptionsList = document.getElementById('bank-options-list');
+  const accountInput = document.getElementById('account-input');
+  const nameContainer = document.getElementById('account-name-container');
+  const nameText = document.getElementById('account-name-text');
+  const statusDot = document.getElementById('status-dot');
+  const saveBtn = document.getElementById('save-bank-btn');
+
+  async function loadBanks() {
+    if (allBanks.length > 0) return;
+    try {
+      const response = await fetch("{% url 'get_banks' %}");
+      const result = await response.json();
+      if (result.status && result.data) {
+        allBanks = result.data;
+        renderBankOptions(allBanks);
+      }
+    } catch (err) {
+      bankOptionsList.innerHTML = '<div class="p-3 text-xs text-rose-400 text-center">Failed to load banks</div>';
+    }
+  }
+
+  function renderBankOptions(banks) {
+    if (banks.length === 0) {
+      bankOptionsList.innerHTML = '<div class="p-3 text-xs text-white/40 text-center">No banks found</div>';
+      return;
+    }
+    bankOptionsList.innerHTML = '';
+    banks.forEach(bank => {
+      const div = document.createElement('div');
+      div.className = "px-4 py-3 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white cursor-pointer transition-colors";
+      div.textContent = bank.name;
+      div.addEventListener('click', () => {
+        bankSearchInput.value = bank.name;
+        bankCodeHidden.value = bank.code;
+        bankOptionsList.classList.add('hidden');
+        if (accountInput.value.length === 10) resolveAccount();
+      });
+      bankOptionsList.appendChild(div);
+    });
+  }
+
+  bankSearchInput.addEventListener('click', () => bankOptionsList.classList.remove('hidden'));
+  bankSearchInput.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
+    bankOptionsList.classList.remove('hidden');
+    bankCodeHidden.value = "";
+    saveBtn.setAttribute('disabled', 'true');
+    saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    renderBankOptions(allBanks.filter(bank => bank.name.toLowerCase().includes(query)));
+  });
+
+  async function resolveAccount() {
+    const accountNumber = accountInput.value.trim();
+    const bankCode = bankCodeHidden.value;
+    if (!bankCode) return;
+
+    if (accountNumber.length === 10) {
+      nameContainer.classList.remove('hidden');
+      nameContainer.classList.add('flex');
+      statusDot.className = "w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse";
+      nameText.className = "text-xs font-bold text-amber-400";
+      nameText.textContent = "Resolving account...";
+
+      try {
+        const response = await fetch("{% url 'resolve_bank' %}", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+          body: JSON.stringify({ account_number: accountNumber, bank_code: bankCode })
+        });
+        const data = await response.json();
+        if (response.ok && data.status) {
+          verifiedAccountName = data.account_name;
+          statusDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400";
+          nameText.className = "text-xs font-bold text-emerald-400";
+          nameText.textContent = verifiedAccountName;
+          saveBtn.removeAttribute('disabled');
+          saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+          throw new Error(data.message || "Account does not exist");
+        }
+      } catch (err) {
+        verifiedAccountName = "";
+        statusDot.className = "w-1.5 h-1.5 rounded-full bg-rose-400";
+        nameText.className = "text-xs font-bold text-rose-400";
+        nameText.textContent = err.message || "Invalid account details";
+        saveBtn.setAttribute('disabled', 'true');
+        saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+    }
+  }
+
+  accountInput.addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/\D/g, '');
+    if (e.target.value.length === 10) resolveAccount();
+    else {
+      nameContainer.classList.add('hidden');
+      saveBtn.setAttribute('disabled', 'true');
+      saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+  });
+
+  saveBtn.addEventListener('click', async () => {
+    const accountNumber = accountInput.value.trim();
+    const bankCode = bankCodeHidden.value;
+    const bankName = bankSearchInput.value.trim();
+
+    if (!verifiedAccountName) return alert("Please verify the account first.");
+
+    saveBtn.textContent = "Saving...";
+    try {
+      const response = await fetch("{% url 'resolve_bank' %}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+        body: JSON.stringify({ account_number: accountNumber, bank_code: bankCode, bank_name: bankName, account_name: verifiedAccountName })
+      });
+      const data = await response.json();
+      if (response.ok && data.status) {
+        location.reload();
+      } else {
+        alert(data.message || "Failed to save.");
+        saveBtn.textContent = "Save New Account";
+      }
+    } catch (err) {
+      alert("An error occurred.");
+      saveBtn.textContent = "Save New Account";
+    }
+  });
+</script>

@@ -1,0 +1,287 @@
+{% extends 'navbar.html' %}
+
+{% block content %}
+    <!-- Main Form Section -->
+    <main class="min-h-[calc(100vh-5rem)] py-12 px-4 md:px-8">
+        <div class="max-w-3xl mx-auto w-full">
+            
+            <!-- Page Heading -->
+            <div class="mb-10 text-center md:text-left">
+                <p class="text-xs font-bold tracking-widest uppercase mb-2 text-white/60">Host a Subscription</p>
+                <h1 class="font-black text-white mb-2" style="font-size: clamp(2rem, 3.5vw, 3rem);">Create a Shared Pool</h1>
+                <p class="text-sm text-white/60 max-w-xl">Split your premium subscription bills securely with verified contributors using our escrow system.</p>
+            </div>
+
+            <!-- Form Wrapper Card -->
+            <form id="createPoolForm" method="POST" action="" class="bg-white/[0.02] border border-white/10 rounded-[2rem] p-6 md:p-10 space-y-8 shadow-2xl">
+                {% csrf_token %}
+                
+                <!-- 1. Service Name Selection -->
+                <div class="space-y-2">
+                    <label for="serviceSelect" class="block text-xs font-bold uppercase tracking-wider text-white/80">
+                        Service Name <span class="text-red-400">*</span>
+                    </label>
+                    <div class="relative">
+                        <select id="serviceSelect" name="service" required
+                                class="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-white/40 transition-all appearance-none cursor-pointer">
+                            <option value="" disabled selected class="bg-black text-white/40">Select a subscription service...</option>
+                            {% for service in standard_services %}
+                                <option value="{{ service.id }}" 
+                                        data-category="{{ service.get_category_display }}" 
+                                        data-max="{{ service.max_people }}" 
+                                        data-price="{{ service.standard_price }}"
+                                        data-desc="{{ service.name }} — Max seats: {{ service.max_people }}" 
+                                        class="bg-black text-white">
+                                    {{ service.name }}
+                                </option>
+                            {% endfor %}
+                            <option value="other" data-category="Other" data-max="10" data-price="0" data-desc="Create a custom service pool. Max seats: 10" class="bg-black text-white font-bold text-emerald-400">Other (Custom Service)</option>
+                        </select>
+                        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40 text-xs">▼</div>
+                    </div>
+                    <!-- Subtext Category Display -->
+                    <p id="serviceCategoryText" class="text-xs text-white/50 pl-1 font-medium">Category: —</p>
+                </div>
+
+                <!-- Hidden Custom Service Fields (Shown only when 'Other' is selected) -->
+                <div id="otherServiceFields" class="space-y-6 hidden bg-white/[0.02] border border-white/10 p-5 rounded-2xl">
+                    <div class="space-y-2">
+                        <label for="newServiceNameInput" class="block text-xs font-bold uppercase tracking-wider text-white/80">
+                            Custom Service Name <span class="text-red-400">*</span>
+                        </label>
+                        <input type="text" id="newServiceNameInput" name="new_service_name" placeholder="e.g. Midjourney, Canva Pro"
+                               class="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/40 transition-all">
+                    </div>
+                    <div class="space-y-2">
+                        <label for="newServiceCategorySelect" class="block text-xs font-bold uppercase tracking-wider text-white/80">
+                            Custom Service Category <span class="text-red-400">*</span>
+                        </label>
+                        <div class="relative">
+                            <select id="newServiceCategorySelect" name="new_service_category"
+                                    class="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-white/40 transition-all appearance-none cursor-pointer">
+                                {% for key, val in categories %}
+                                    <option value="{{ key }}" class="bg-black text-white">{{ val }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40 text-xs">▼</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Total Seats Input -->
+                <div class="space-y-2">
+                    <label for="totalSeatsInput" class="block text-xs font-bold uppercase tracking-wider text-white/80">
+                        Total Seats <span class="text-red-400">*</span>
+                    </label>
+                    <div class="relative">
+                        <input type="number" id="totalSeatsInput" name="total_seats" min="1" max="10" placeholder="Select a service first..." required
+                               class="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/40 transition-all">
+                    </div>
+                    <!-- Dynamic Service Description Info -->
+                    <div id="serviceDescriptionBox" class="text-xs text-white/70 bg-white/5 border border-white/10 rounded-xl p-3 hidden font-medium">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                    <!-- Helper disclaimer text -->
+                    <p class="text-[11px] text-white/40 pl-1 leading-relaxed">
+                        Enter the total number of seats available. If you’re using one, you occupy a seat.
+                    </p>
+                </div>
+
+                <!-- 3. Price Per Seat Input -->
+                <div class="space-y-2">
+                    <label for="priceInput" class="block text-xs font-bold uppercase tracking-wider text-white/80">
+                        Price Per Seat <span class="text-red-400">*</span>
+                    </label>
+                    <div class="relative flex items-center">
+                        <span class="absolute left-4 text-sm font-bold text-white/60">₦</span>
+                        <input type="number" id="priceInput" name="price_per_seat" min="1000" step="any" placeholder="0.00" required
+                               class="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-9 pr-4 py-3.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/40 transition-all">
+                    </div>
+                    <p class="text-[11px] text-white/40 pl-1">Minimum price per seat is ₦1,000.</p>
+                    <!-- Platform Fee & Calculation Breakdown Box -->
+                    <div class="bg-white/[0.03] border border-white/10 rounded-2xl p-4 space-y-2">
+                        <p class="text-xs text-white/60">
+                            coPayNG takes a {{site_info.site_percentage}}% platform fee + ₦{{site_info.price}} service fee. 
+                            <span class="text-white/40 block mt-0.5">*A standard secure escrow processing fee applies at checkout to protect all members.</span>
+                        </p>
+                        <div class="pt-2 border-t border-white/10 flex flex-col sm:flex-row justify-between text-xs gap-1">
+                            <span class="text-white/70">Price per seat: <strong id="calcBasePrice" class="text-white">₦0.00</strong></span>
+                            <span class="text-white/70">Fee ({{site_info.site_percentage}}% + Flat): <strong id="calcFee" class="text-white">₦0.00</strong></span>
+                            <span class="text-emerald-400 font-bold">Total contributor pays: <strong id="calcTotalPrice">₦0.00</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 4. Duration Field -->
+                    <div class="space-y-2">
+                        <label for="durationInput" class="block text-xs font-bold uppercase tracking-wider text-white/80">
+                            Duration (Days) <span class="text-red-400">*</span>
+                        </label>
+                        <input type="number" id="durationInput" name="duration_days" min="30" max="31" value="30" placeholder="30" required
+                               class="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/40 transition-all">
+                        <p class="text-[11px] text-white/40 pl-1">A pool runs for a full month: 30 or 31 days.</p>
+                    </div>
+
+                    <!-- 5. Pool Visibility Toggle -->
+                    <div class="space-y-2 flex flex-col justify-between">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-white/80">
+                            Pool Visibility
+                        </label>
+                        <div class="flex items-center gap-3 bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3.5 h-[50px]">
+                            <input type="checkbox" id="visibilityToggle" name="is_public" checked
+                                    class="w-4 h-4 accent-white rounded cursor-pointer">
+                            <label for="visibilityToggle" class="text-xs font-semibold text-white/90 cursor-pointer select-none">
+                                Make Pool Public
+                            </label>
+                        </div>
+                        <p id="visibilityHelpText" class="text-[11px] text-white/40 pl-1">
+                            Pool is currently public and listed on the marketplace.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Submit Action Button -->
+                <div class="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-end gap-4">
+                    <a href="{% url 'marketplace' %}" class="w-full sm:w-auto text-center px-6 py-3 rounded-xl text-xs font-bold text-white/60 hover:text-white transition-colors">
+                        Cancel
+                    </a>
+                    <button type="submit" class="w-full sm:w-auto px-8 py-3.5 rounded-xl text-xs font-bold text-black bg-white hover:bg-white/90 transition-all shadow-lg active:scale-95">
+                        Next
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </main>
+
+    <!-- Form Interactivity & Instant Calculation JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('createPoolForm');
+            const serviceSelect = document.getElementById('serviceSelect');
+            const categoryText = document.getElementById('serviceCategoryText');
+            const totalSeatsInput = document.getElementById('totalSeatsInput');
+            const serviceDescBox = document.getElementById('serviceDescriptionBox');
+            const otherServiceFields = document.getElementById('otherServiceFields');
+            const newServiceNameInput = document.getElementById('newServiceNameInput');
+            
+            const priceInput = document.getElementById('priceInput');
+            const calcBasePrice = document.getElementById('calcBasePrice');
+            const calcFee = document.getElementById('calcFee');
+            const calcTotalPrice = document.getElementById('calcTotalPrice');
+
+            const visibilityToggle = document.getElementById('visibilityToggle');
+            const visibilityHelpText = document.getElementById('visibilityHelpText');
+
+            // Site fee configuration from context
+            const sitePercentage = parseFloat("{{ site_info.site_percentage|default:0 }}") || 0;
+            const siteFlatFee = 100; // Flat service fee component
+
+            let baseStandardPrice = 0; // Tracks raw standard price of chosen service
+
+            // Utility to format numbers to Nigerian Naira currency display
+            function formatNaira(val) {
+                return '₦' + val.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            // Real-time calculation engine & dynamic placeholder updates
+            function updateCalculations() {
+                const totalSeatsVal = parseInt(totalSeatsInput.value);
+                
+                // Update Price Per Seat placeholder dynamically
+                if (baseStandardPrice > 0) {
+                    if (!isNaN(totalSeatsVal) && totalSeatsVal > 0) {
+                        const calculatedPlaceholder = (baseStandardPrice / totalSeatsVal).toFixed(2);
+                        priceInput.placeholder = calculatedPlaceholder;
+                    } else {
+                        priceInput.placeholder = baseStandardPrice.toFixed(2);
+                    }
+                } else {
+                    priceInput.placeholder = "0.00";
+                }
+
+                // Base price calculation for live fees summary
+                const typedPrice = parseFloat(priceInput.value);
+                const basePrice = !isNaN(typedPrice) ? typedPrice : 0;
+
+                // Calculate platform fee split
+                const percentageFeeAmount = basePrice * (sitePercentage / 100);
+                const totalCalculatedFee = percentageFeeAmount + siteFlatFee;
+                const finalContributorTotal = basePrice + totalCalculatedFee;
+
+                calcBasePrice.textContent = formatNaira(basePrice);
+                calcFee.textContent = formatNaira(totalCalculatedFee);
+                calcTotalPrice.textContent = formatNaira(finalContributorTotal);
+            }
+
+            // 1. Handle Service Selection Change
+            serviceSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const category = selectedOption.getAttribute('data-category');
+                const maxSeats = selectedOption.getAttribute('data-max');
+                const standardPriceAttr = parseFloat(selectedOption.getAttribute('data-price'));
+                const description = selectedOption.getAttribute('data-desc');
+
+                categoryText.textContent = `Category: ${category || '—'}`;
+
+                if (this.value === 'other') {
+                    otherServiceFields.classList.remove('hidden');
+                    newServiceNameInput.setAttribute('required', 'true');
+                    
+                    totalSeatsInput.removeAttribute('max');
+                    totalSeatsInput.placeholder = 'Max 10 seats';
+                    totalSeatsInput.value = '';
+                    
+                    baseStandardPrice = 0;
+                    priceInput.value = '';
+                    priceInput.placeholder = '0.00';
+                    serviceDescBox.classList.add('hidden');
+                } else {
+                    otherServiceFields.classList.add('hidden');
+                    newServiceNameInput.removeAttribute('required');
+                    newServiceNameInput.value = '';
+
+                    if (maxSeats) {
+                        totalSeatsInput.setAttribute('max', maxSeats);
+                        totalSeatsInput.placeholder = `Max ${maxSeats} seats`;
+                    }
+
+                    baseStandardPrice = !isNaN(standardPriceAttr) ? standardPriceAttr : 0;
+                    priceInput.value = ''; // Clean input so user can type freely
+
+                    if (description) {
+                        serviceDescBox.textContent = description;
+                        serviceDescBox.classList.remove('hidden');
+                    } else {
+                        serviceDescBox.classList.add('hidden');
+                    }
+                }
+                updateCalculations();
+            });
+
+            // 2. Instant binding for live calculations on every keystroke/input
+            priceInput.addEventListener('input', updateCalculations);
+            totalSeatsInput.addEventListener('input', updateCalculations);
+
+            // 3. Handle Visibility Toggle Text updates
+            visibilityToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    visibilityHelpText.textContent = "Pool is currently public and listed on the marketplace.";
+                } else {
+                    visibilityHelpText.textContent = "Pool is private and accessible only via direct link.";
+                }
+            });
+
+            // 4. Form Submit Safety Check: If user leaves price blank, fallback to the placeholder value
+            form.addEventListener('submit', function(e) {
+                if (!priceInput.value && priceInput.placeholder && priceInput.placeholder !== "0.00") {
+                    priceInput.value = priceInput.placeholder;
+                }
+            });
+
+            // Initial trigger on load
+            updateCalculations();
+        });
+    </script>
+{% endblock %}

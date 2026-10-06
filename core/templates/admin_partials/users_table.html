@@ -1,0 +1,164 @@
+<!-- CoPay Admin - See All Users Section -->
+<div class="rounded-[2rem] p-6 md:p-8 space-y-6 shadow-2xl" 
+     style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+  
+  <!-- Header & Search -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-white/10">
+    <div>
+      <h3 class="text-base font-bold text-white">Users Directory</h3>
+      <span class="text-xs text-white/40">Manage all registered platform participants</span>
+    </div>
+    <div class="w-full sm:w-auto">
+      <input type="text" id="user-search-input" placeholder="Search user name or email..." 
+             class="w-full sm:w-64 bg-white/[0.03] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/40">
+    </div>
+  </div>
+
+  <!-- Users Table Wrapper -->
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="border-b border-white/10 text-[10px] uppercase tracking-wider text-white/45">
+          <th class="pb-3 font-semibold">User</th>
+          <th class="pb-3 font-semibold">Email</th>
+          <th class="pb-3 font-semibold">Phone</th>
+          <th class="pb-3 font-semibold">Joined</th>
+          <th class="pb-3 font-semibold text-center">Pools</th>
+          <th class="pb-3 font-semibold text-right">Success Rate</th>
+        </tr>
+      </thead>
+      <tbody id="users-table-body" class="divide-y divide-white/5 text-xs font-medium">
+        <!-- Dynamically injected via JavaScript -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Controls Footer -->
+  <div id="pagination-container" class="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-white/10 text-xs text-white/50 hidden">
+    <span id="pagination-info">Showing 0-0 of 0 users</span>
+    <div class="flex items-center gap-2 mt-2 sm:mt-0">
+      <button id="prev-page-btn" onclick="changePage(-1)" class="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:cursor-not-allowed transition-all">Previous</button>
+      <span id="page-indicator" class="px-3 py-1.5 font-mono text-white">1 / 1</span>
+      <button id="next-page-btn" onclick="changePage(1)" class="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:cursor-not-allowed transition-all">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript Component for Directory, Search, and Pagination -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const allUsers = JSON.parse('{{ users_json|safe }}');
+    let filteredUsers = [...allUsers];
+    let currentPage = 1;
+    const rowsPerPage = 10;
+
+    const tableBody = document.getElementById("users-table-body");
+    const searchInput = document.getElementById("user-search-input");
+    const paginationContainer = document.getElementById("pagination-container");
+    const paginationInfo = document.getElementById("pagination-info");
+    const pageIndicator = document.getElementById("page-indicator");
+    const prevBtn = document.getElementById("prev-page-btn");
+    const nextBtn = document.getElementById("next-page-btn");
+
+    function getInitials(name) {
+      return name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+    }
+
+    function getRandomColorTheme(index) {
+      const themes = [
+        { bg: "bg-sky-500/20", text: "text-sky-400" },
+        { bg: "bg-purple-500/20", text: "text-purple-400" },
+        { bg: "bg-amber-500/20", text: "text-amber-400" },
+        { bg: "bg-emerald-500/20", text: "text-emerald-400" },
+        { bg: "bg-rose-500/20", text: "text-rose-400" }
+      ];
+      return themes[index % themes.length];
+    }
+
+    function renderTable() {
+      tableBody.innerHTML = "";
+
+      if (filteredUsers.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-white/40">No users found matching your search.</td></tr>`;
+        paginationContainer.classList.add("hidden");
+        return;
+      }
+
+      // Pagination Slicing
+      const totalPages = Math.ceil(filteredUsers.length / rowsPerPage);
+      if (currentPage > totalPages) currentPage = 1;
+      
+      const start = (currentPage - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      const paginatedUsers = filteredUsers.slice(start, end);
+
+      paginatedUsers.forEach((user, idx) => {
+        const theme = getRandomColorTheme(start + idx);
+        const initials = getInitials(user.name);
+        
+        // Success rate styling threshold colors
+        let badgeColor = "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+        if (user.successRate < 70) {
+          badgeColor = "text-rose-400 bg-rose-500/10 border-rose-500/20";
+        } else if (user.successRate < 90) {
+          badgeColor = "text-amber-400 bg-amber-500/10 border-amber-500/20";
+        }
+
+        const row = document.createElement("tr");
+        // Added cursor-pointer and click handler to make the whole row tappable
+        row.className = "hover:bg-white/[0.04] transition-colors cursor-pointer";
+        row.onclick = function() {
+          window.location.href = `/admin/profile/${user.id}/`;
+        };
+
+        row.innerHTML = `
+          <td class="py-4 font-bold text-white flex items-center gap-3">
+            <div class="w-7 h-7 rounded-full ${theme.bg} ${theme.text} font-bold flex items-center justify-center text-[10px]">${initials}</div>
+            <span>${user.name}</span>
+          </td>
+          <td class="py-4 text-white/70 font-mono">${user.email}</td>
+          <td class="py-4 text-white/70 font-mono">${user.phone}</td>
+          <td class="py-4 text-white/60 font-mono">${user.joined}</td>
+          <td class="py-4 text-center font-bold text-white">${user.totalPools}</td>
+          <td class="py-4 text-right">
+            <span class="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold ${badgeColor} border">${user.successRate}%</span>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      // Update Pagination Bar Visibility and Controls
+      if (filteredUsers.length > rowsPerPage) {
+        paginationContainer.classList.remove("hidden");
+        paginationInfo.textContent = `Showing ${start + 1}-${Math.min(end, filteredUsers.length)} of ${filteredUsers.length} users`;
+        pageIndicator.textContent = `${currentPage} / ${totalPages}`;
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === totalPages;
+      } else {
+        paginationContainer.classList.add("hidden");
+      }
+    }
+
+    // Search Filtering Listener
+    searchInput.addEventListener("input", function (e) {
+      const query = e.target.value.toLowerCase().trim();
+      filteredUsers = allUsers.filter(u => 
+        u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query)
+      );
+      currentPage = 1;
+      renderTable();
+    });
+
+    // Global Pagination Action Trigger
+    window.changePage = function (direction) {
+      const totalPages = Math.ceil(filteredUsers.length / rowsPerPage);
+      currentPage += direction;
+      if (currentPage < 1) currentPage = 1;
+      if (currentPage > totalPages) currentPage = totalPages;
+      renderTable();
+    };
+
+    // Initial Table Render
+    renderTable();
+  });
+</script>

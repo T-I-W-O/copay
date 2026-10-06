@@ -1,0 +1,334 @@
+{% extends 'navbar.html' %}
+
+{% block content %}
+<!-- CoPay My Subscriptions Page -->
+<main class="min-h-screen text-white pt-24 pb-20" style="background: #05080F;">
+  <div class="px-4 md:px-8 lg:px-16 max-w-7xl mx-auto w-full">
+    
+    <!-- Page Header -->
+    <div class="mb-12">
+      <p class="text-sm font-bold tracking-widest uppercase mb-3 text-white/75">Management</p>
+      <h1 class="font-black text-white mb-2" style="font-size: clamp(2.2rem, 4vw, 3.5rem);">My Subscriptions</h1>
+      <p class="text-sm text-white/60 max-w-xl">Track and manage the subscription pools you host or participate in.</p>
+    </div>
+
+    <!-- SECTION 1: Created by You (Hosted Pools) -->
+    <div class="mb-16">
+      <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+        <h2 class="text-xl font-black text-white flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> Created by You <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/10 text-white/70">Hosting</span>
+        </h2>
+        <a href="{% url 'subscription_list' 'host' %}" class="text-xs font-bold text-emerald-400 hover:underline">See All &rarr;</a>
+      </div>
+
+      {% if hosted_pools %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {% for pool in hosted_pools %}
+            <a href="/market/{{ pool.id }}/" 
+               class="ms-card rounded-[1.5rem] p-6 flex flex-col justify-between transition-all hover:border-white/40 block group relative overflow-hidden" 
+               style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); text-decoration: none;">
+              <div>
+                <div class="flex justify-between items-center mb-4 gap-2">
+                  <div class="flex items-center gap-2">
+                    {% if pool.service.image %}
+                      <img src="{{ pool.service.image.url }}" alt="{{ pool.service.name }}" class="w-6 h-6 rounded-md object-cover border border-white/20">
+                    {% else %}
+                      <div class="w-6 h-6 rounded-md bg-red-600 text-white font-bold text-xs flex items-center justify-center">{{ pool.service.name|slice:":1"|lower }}</div>
+                    {% endif %}
+                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/10 text-white border border-white/20">
+                      {{ pool.service.name }}
+                    </span>
+                  </div>
+                  <span class="text-[10px] uppercase font-bold {% if pool.status == 'open' %}text-emerald-400 bg-emerald-500/10 border-emerald-500/20{% else %}text-amber-400 bg-amber-500/10 border-amber-500/20{% endif %} px-2 py-0.5 rounded-full border">
+                    {{ pool.get_status_display }}
+                  </span>
+                </div>
+
+                <h3 class="text-lg font-bold text-white mb-1 group-hover:text-white/90 transition-colors">{{ pool.service.name }} Shared Pool</h3>
+                <p class="text-xs mb-4 text-white/40">Host: You (Hosting)</p>
+                
+                <div class="mb-6 space-y-2">
+                  <div class="flex justify-between items-center text-xs text-white/80 font-semibold">
+                    <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-white/70"></span> {{ pool.current_users }}/{{ pool.number_of_users }} slots filled</span>
+                  </div>
+                  <div class="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                    <div class="bg-white h-full rounded-full transition-all duration-500" style="width: {% widthratio pool.current_users pool.number_of_users 100 %}%;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between items-end mb-4 pt-2 border-t border-white/5">
+                  <div>
+                    <span class="text-[10px] uppercase tracking-wider block text-white/40">Price / Seat</span>
+                    <span class="text-xl font-black text-white">₦{{ pool.amount_per_person|floatformat:2 }} <span class="text-xs font-normal text-white/40">/mo</span></span>
+                  </div>
+                </div>
+                
+                <span class="w-full py-2.5 rounded-xl font-bold text-xs text-center block transition-all group-hover:scale-[1.02] bg-white text-black">
+                  Manage Pool
+                </span>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm text-white/40">You aren't hosting any active or open pools yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- SECTION 2: Joined by You (Contributor Pools) -->
+    <div class="mb-16">
+      <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+        <h2 class="text-xl font-black text-white flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span> Joined by You <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/10 text-white/70">Contributor</span>
+        </h2>
+        <a href="{% url 'subscription_list' 'is_in' %}" class="text-xs font-bold text-blue-400 hover:underline">See All &rarr;</a>
+      </div>
+
+      {% if joined_pools %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {% for pool in joined_pools %}
+            <a href="/market/{{ pool.id }}/" 
+               class="ms-card rounded-[1.5rem] p-6 flex flex-col justify-between transition-all hover:border-white/40 block group relative overflow-hidden" 
+               style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); text-decoration: none;">
+              <div>
+                <div class="flex justify-between items-center mb-4 gap-2">
+                  <div class="flex items-center gap-2">
+                    {% if pool.service.image %}
+                      <img src="{{ pool.service.image.url }}" alt="{{ pool.service.name }}" class="w-6 h-6 rounded-md object-cover border border-white/20">
+                    {% else %}
+                      <div class="w-6 h-6 rounded-md bg-emerald-600 text-white font-bold text-xs flex items-center justify-center">{{ pool.service.name|slice:":1"|lower }}</div>
+                    {% endif %}
+                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/10 text-white border border-white/20">
+                      {{ pool.service.name }}
+                    </span>
+                  </div>
+                  <span class="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full border">
+                    {{ pool.get_status_display }}
+                  </span>
+                </div>
+
+                <h3 class="text-lg font-bold text-white mb-1 group-hover:text-white/90 transition-colors">{{ pool.service.name }} Shared Pool</h3>
+                <p class="text-xs mb-4 text-white/40">Host: @{{ pool.host.username }}</p>
+                
+                <div class="mb-6 space-y-2">
+                  <div class="flex justify-between items-center text-xs text-white/80 font-semibold">
+                    <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-white/70"></span> {{ pool.current_users }}/{{ pool.number_of_users }} slots filled</span>
+                  </div>
+                  <div class="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                    <div class="bg-white h-full rounded-full transition-all duration-500" style="width: {% widthratio pool.current_users pool.number_of_users 100 %}%;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between items-end mb-4 pt-2 border-t border-white/5">
+                  <div>
+                    <span class="text-[10px] uppercase tracking-wider block text-white/40">Price / Seat</span>
+                    <span class="text-xl font-black text-white">₦{{ pool.amount_per_person|floatformat:2 }} <span class="text-xs font-normal text-white/40">/mo</span></span>
+                  </div>
+                </div>
+                
+                <span class="w-full py-2.5 rounded-xl font-bold text-xs text-center block transition-all group-hover:scale-[1.02] bg-white text-black">
+                  View Pool Details
+                </span>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm text-white/40">You haven't joined any active pools yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- SECTION 3: Others (Successful & Cancelled Pools) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-16">
+      
+      <!-- Successful Pools -->
+      <div>
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+          <h2 class="text-xl font-black text-white flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span> Successful Pools
+          </h2>
+          <a href="{% url 'subscription_list' 'successful' %}" class="text-xs font-bold text-purple-400 hover:underline">See All &rarr;</a>
+        </div>
+        {% if successful_pools %}
+          <div class="space-y-4">
+            {% for pool in successful_pools %}
+              <div class="p-4 rounded-xl bg-white/5 border border-white/10 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                  {% if pool.service.image %}
+                    <img src="{{ pool.service.image.url }}" alt="{{ pool.service.name }}" class="w-8 h-8 rounded-md object-cover border border-white/20">
+                  {% else %}
+                    <div class="w-8 h-8 rounded-md bg-purple-600 text-white font-bold text-xs flex items-center justify-center">{{ pool.service.name|slice:":1"|lower }}</div>
+                  {% endif %}
+                  <div>
+                    <h4 class="font-bold text-white">{{ pool.service.name }}</h4>
+                    <p class="text-xs text-white/40">Status: Completed</p>
+                  </div>
+                </div>
+                <a href="/market/{{ pool.id }}/" class="px-3 py-1.5 bg-white/10 hover:bg-white/25 rounded-lg text-xs font-bold transition-colors">View</a>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-sm text-white/40">No successful pools found.</p>
+        {% endif %}
+      </div>
+
+      <!-- Cancelled Pools -->
+      <div>
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+          <h2 class="text-xl font-black text-white flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-400"></span> Cancelled Pools
+          </h2>
+          <a href="{% url 'subscription_list' 'cancelled' %}" class="text-xs font-bold text-red-400 hover:underline">See All &rarr;</a>
+        </div>
+        {% if cancelled_pools %}
+          <div class="space-y-4">
+            {% for pool in cancelled_pools %}
+              <div class="p-4 rounded-xl bg-white/5 border border-white/10 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                  {% if pool.service.image %}
+                    <img src="{{ pool.service.image.url }}" alt="{{ pool.service.name }}" class="w-8 h-8 rounded-md object-cover border border-white/20">
+                  {% else %}
+                    <div class="w-8 h-8 rounded-md bg-red-600 text-white font-bold text-xs flex items-center justify-center">{{ pool.service.name|slice:":1"|lower }}</div>
+                  {% endif %}
+                  <div>
+                    <h4 class="font-bold text-white">{{ pool.service.name }}</h4>
+                    <p class="text-xs text-white/40">Status: Cancelled</p>
+                  </div>
+                </div>
+                <a href="/market/{{ pool.id }}/" class="px-3 py-1.5 bg-white/10 hover:bg-white/25 rounded-lg text-xs font-bold transition-colors">View</a>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-sm text-white/40">No cancelled pools found.</p>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- SECTION 4: Disputes Table with JS Filter -->
+    <div>
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 pb-4 border-b border-white/10 gap-4">
+        <h2 class="text-xl font-black text-white flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Associated Disputes
+        </h2>
+        
+        <!-- JS Dispute Filter Buttons -->
+        <div class="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10">
+          <button type="button" data-filter="open" class="dispute-filter-btn px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-black">
+            Open
+          </button>
+          <button type="button" data-filter="resolved" class="dispute-filter-btn px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-white/60 hover:text-white">
+            Resolved
+          </button>
+        </div>
+      </div>
+
+      {% if disputes %}
+        <div class="overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.02]">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-white/10 text-white/40 text-[10px] uppercase tracking-wider bg-white/[0.01]">
+                <th class="py-4 px-6 font-bold">Dispute Name</th>
+                <th class="py-4 px-6 font-bold">Opened By</th>
+                <th class="py-4 px-6 font-bold">Against User</th>
+                <th class="py-4 px-6 font-bold">Status</th>
+                <th class="py-4 px-6 font-bold text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="disputes-tbody" class="divide-y divide-white/5 text-xs text-white/80">
+              {% for dispute in disputes %}
+                <tr class="dispute-row transition-colors hover:bg-white/[0.02]" data-status="{{ dispute.status }}">
+                  <td class="py-4 px-6 font-bold text-white">
+                    {{ dispute.name|default:"Unnamed Dispute" }}
+                    <span class="block text-[10px] font-normal text-white/40">Pool: {{ dispute.pool.service.name }}</span>
+                  </td>
+                  <td class="py-4 px-6">
+                    {% if dispute.opened_by == request.user %}
+                      <span class="text-emerald-400 font-semibold">You</span>
+                    {% else %}
+                      @{{ dispute.opened_by.username }}
+                    {% endif %}
+                  </td>
+                  <td class="py-4 px-6">
+                    {% if dispute.against_user == request.user %}
+                      <span class="text-red-400 font-semibold">You</span>
+                    {% else %}
+                      @{{ dispute.against_user.username }}
+                    {% endif %}
+                  </td>
+                  <td class="py-4 px-6">
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border {% if dispute.status == 'open' %}text-amber-400 bg-amber-500/10 border-amber-500/20{% else %}text-emerald-400 bg-emerald-500/10 border-emerald-500/20{% endif %}">
+                      {{ dispute.get_status_display }}
+                    </span>
+                  </td>
+                  <td class="py-4 px-6 text-right">
+                    <a href="{% url 'dispute' dispute.pk %}" class="inline-block px-3 py-1.5 bg-white/10 hover:bg-white text-white hover:text-black font-bold rounded-lg transition-all">
+                      View Details
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div id="no-disputes-msg" class="hidden text-center py-12 bg-white/5 rounded-2xl border border-white/10 mt-2">
+          <p class="text-sm text-white/40">No disputes found for this filter.</p>
+        </div>
+      {% else %}
+        <div class="text-center py-12 bg-white/5 rounded-2xl border border-white/10">
+          <p class="text-sm text-white/40">No disputes found.</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</main>
+
+<!-- Client-side filtering script -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const filterButtons = document.querySelectorAll(".dispute-filter-btn");
+    const disputeRows = document.querySelectorAll(".dispute-row");
+    const noDisputesMsg = document.getElementById("no-disputes-msg");
+
+    function filterDisputes(status) {
+      let visibleCount = 0;
+      disputeRows.forEach(row => {
+        if (row.getAttribute("data-status") === status) {
+          row.style.display = "";
+          visibleCount++;
+        } else {
+          row.style.display = "none";
+        }
+      });
+
+      if (noDisputesMsg) {
+        noDisputesMsg.style.display = visibleCount === 0 ? "block" : "none";
+      }
+    }
+
+    // Initial default run for 'open'
+    filterDisputes("open");
+
+    filterButtons.forEach(btn => {
+      btn.addEventListener("click", function () {
+        filterButtons.forEach(b => {
+          b.classList.remove("bg-white", "text-black");
+          b.classList.add("text-white/60", "hover:text-white");
+        });
+        this.classList.remove("text-white/60", "hover:text-white");
+        this.classList.add("bg-white", "text-black");
+
+        const selectedStatus = this.getAttribute("data-filter");
+        filterDisputes(selectedStatus);
+      });
+    });
+  });
+</script>
+{% endblock %}

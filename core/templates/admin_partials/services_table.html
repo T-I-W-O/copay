@@ -1,0 +1,136 @@
+<!-- CoPay Admin - Services & Pricing Configuration -->
+<div class="rounded-[2rem] p-6 md:p-8 space-y-6 shadow-2xl" 
+     style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+  
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-white/10">
+    <div>
+      <h3 class="text-base font-bold text-white">Services & Pricing Management</h3>
+      <span class="text-xs text-white/40">Configure categories, standard rates, and maximum user slots</span>
+    </div>
+    <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+      <input type="text" id="service-search-input" placeholder="Search service name..." 
+             class="w-full sm:w-56 bg-white/[0.03] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/40">
+<a href="{% url 'service' %}"
+   class="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-bold bg-white text-black hover:bg-white/90 transition-all inline-block">
+  + Create New Service
+</a>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="border-b border-white/10 text-[10px] uppercase tracking-wider text-white/45">
+          <th class="pb-3 font-semibold">Service Name</th>
+          <th class="pb-3 font-semibold">Category</th>
+          <th class="pb-3 font-semibold">Max People</th>
+          <th class="pb-3 font-semibold">Standard Price</th>
+          <th class="pb-3 font-semibold text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="services-table-body" class="divide-y divide-white/5 text-xs font-medium">
+        <!-- Dynamically injected via JavaScript -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Services Pagination Controls -->
+  <div id="services-pagination-container" class="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-white/10 text-xs text-white/50 hidden">
+    <span id="services-pagination-info">Showing 0-0 of 0 services</span>
+    <div class="flex items-center gap-2 mt-2 sm:mt-0">
+      <button id="services-prev-btn" onclick="changeServicePage(-1)" class="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:cursor-not-allowed transition-all">Previous</button>
+      <span id="services-page-indicator" class="px-3 py-1.5 font-mono text-white">1 / 1</span>
+      <button id="services-next-btn" onclick="changeServicePage(1)" class="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:cursor-not-allowed transition-all">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript Component for Services Search & Pagination -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const allServices = JSON.parse('{{ services_json|safe }}');
+    let filteredServices = [...allServices];
+    let currentServicePage = 1;
+    const rowsPerServicePage = 10;
+
+    const tableBody = document.getElementById("services-table-body");
+    const searchInput = document.getElementById("service-search-input");
+    const paginationContainer = document.getElementById("services-pagination-container");
+    const paginationInfo = document.getElementById("services-pagination-info");
+    const pageIndicator = document.getElementById("services-page-indicator");
+    const prevBtn = document.getElementById("services-prev-btn");
+    const nextBtn = document.getElementById("services-next-btn");
+
+    function renderServicesTable() {
+      tableBody.innerHTML = "";
+
+      if (filteredServices.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-white/40">No standard services found matching your search.</td></tr>`;
+        paginationContainer.classList.add("hidden");
+        return;
+      }
+
+      const totalPages = Math.ceil(filteredServices.length / rowsPerServicePage);
+      if (currentServicePage > totalPages) currentServicePage = 1;
+
+      const start = (currentServicePage - 1) * rowsPerServicePage;
+      const end = start + rowsPerServicePage;
+      const paginatedServices = filteredServices.slice(start, end);
+
+      paginatedServices.forEach(srv => {
+        const formattedPrice = `₦${srv.standardPrice.toLocaleString('en-NG', { minimumFractionDigits: 2 })}`;
+
+        const row = document.createElement("tr");
+        // Added cursor-pointer and row click handler
+        row.className = "hover:bg-white/[0.04] transition-colors cursor-pointer";
+        row.onclick = function() {
+          window.location.href = `/admin/service/${srv.id}/`;
+        };
+
+        row.innerHTML = `
+          <td class="py-4 font-bold text-white">${srv.name}</td>
+          <td class="py-4 text-white/70">${srv.category}</td>
+          <td class="py-4 font-mono text-white">${srv.maxPeople} Users</td>
+          <td class="py-4 font-mono text-emerald-400 font-bold">${formattedPrice}</td>
+          <td class="py-4 text-right">
+            <a href="/admin/service/${srv.id}/" onclick="event.stopPropagation();" class="text-xs font-bold text-sky-400 hover:underline">Edit</a>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      // Pagination Display Handler
+      if (filteredServices.length > rowsPerServicePage) {
+        paginationContainer.classList.remove("hidden");
+        paginationInfo.textContent = `Showing ${start + 1}-${Math.min(end, filteredServices.length)} of ${filteredServices.length} services`;
+        pageIndicator.textContent = `${currentServicePage} / ${totalPages}`;
+        prevBtn.disabled = currentServicePage === 1;
+        nextBtn.disabled = currentServicePage === totalPages;
+      } else {
+        paginationContainer.classList.add("hidden");
+      }
+    }
+
+    // Live Search Filter for Service Name
+    searchInput.addEventListener("input", function (e) {
+      const query = e.target.value.toLowerCase().trim();
+      filteredServices = allServices.filter(srv => 
+        srv.name.toLowerCase().includes(query) || srv.category.toLowerCase().includes(query)
+      );
+      currentServicePage = 1;
+      renderServicesTable();
+    });
+
+    // Global Pagination Action Trigger
+    window.changeServicePage = function (direction) {
+      const totalPages = Math.ceil(filteredServices.length / rowsPerServicePage);
+      currentServicePage += direction;
+      if (currentServicePage < 1) currentServicePage = 1;
+      if (currentServicePage > totalPages) currentServicePage = totalPages;
+      renderServicesTable();
+    };
+
+    // Initial Render
+    renderServicesTable();
+  });
+</script>

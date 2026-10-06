@@ -1,0 +1,71 @@
+<!-- Stats Section Component -->
+<section id="stats-section" class="px-4 md:px-8 lg:px-16 py-12 lg:py-16 max-w-7xl mx-auto w-full">
+  <div
+    class="grid grid-cols-2 md:grid-cols-4 overflow-hidden rounded-[2rem]"
+    style="border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02);"
+  >
+    <!-- Stat 1 -->
+    <div class="stat-card p-8 lg:p-12 text-center" style="border-right: 1px solid rgba(255,255,255,0.1);">
+      <p class="text-4xl lg:text-5xl font-black mb-2 text-white">₦12M+</p>
+      <p class="text-white font-semibold text-sm mb-1">Saved by users</p>
+      <p class="text-xs" style="color: rgba(255,255,255,0.4);">and growing daily</p>
+    </div>
+
+    <!-- Stat 2 -->
+    <div class="stat-card p-8 lg:p-12 text-center" style="border-right: 1px solid rgba(255,255,255,0.1);">
+      <p class="text-4xl lg:text-5xl font-black mb-2 text-white">4.9/5</p>
+      <p class="text-white font-semibold text-sm mb-1">Trust score</p>
+      <p class="text-xs" style="color: rgba(255,255,255,0.4);">from verified users</p>
+    </div>
+
+    <!-- Stat 3 -->
+    <div class="stat-card p-8 lg:p-12 text-center" style="border-right: 1px solid rgba(255,255,255,0.1);">
+      <p class="text-4xl lg:text-5xl font-black mb-2 text-white">0</p>
+      <p class="text-white font-semibold text-sm mb-1">Scams recorded</p>
+      <p class="text-xs" style="color: rgba(255,255,255,0.4);">since we launched</p>
+    </div>
+
+    <!-- Stat 4 -->
+    <div class="stat-card p-8 lg:p-12 text-center">
+      <p class="text-4xl lg:text-5xl font-black mb-2 text-white">42+</p>
+      <p class="text-white font-semibold text-sm mb-1">Active pools</p>
+      <p class="text-xs" style="color: rgba(255,255,255,0.4);">live right now</p>
+    </div>
+  </div>
+</section>
+
+<!-- GSAP & ScrollTrigger Animation Script -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const section = document.getElementById("stats-section");
+    if (!section) return;
+
+    // Main section entrance animation
+    gsap.from(section, {
+      y: 80,
+      opacity: 0,
+      duration: 1,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: section,
+        start: 'top 85%'
+      }
+    });
+
+    // Individual stat cards stagger entrance animation
+    const cards = section.querySelectorAll('.stat-card');
+    cards.forEach((card, i) => {
+      gsap.from(card, {
+        y: 40,
+        opacity: 0,
+        duration: 0.7,
+        delay: i * 0.1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top 80%'
+        }
+      });
+    });
+  });
+</script>

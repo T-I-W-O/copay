@@ -1,0 +1,212 @@
+<header
+  class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-8 lg:px-16 py-4 transition-all duration-300"
+  style="background: rgba(5,8,15,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1);"
+>
+  <!-- Logo & Admin Badge -->
+  <div class="flex items-center gap-3 z-50 relative">
+    <a href="{% url 'admin_page' %}" class="text-xl font-black text-white tracking-tight flex items-center gap-2">
+      Co<span class="text-white/60">Pay</span> 
+      <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-red-500/10 text-red-400 border border-red-500/20">Admin</span>
+    </a>
+  </div>
+  
+  <!-- Desktop Navigation Links -->
+  <nav class="hidden md:flex items-center gap-2 text-sm font-semibold">
+    <!-- Overview -->
+    <a href="{% url 'admin_page' %}" class="relative flex items-center gap-2 px-3 py-1.5 rounded-xl transition-colors {% if request.resolver_match.url_name == 'admin_page' %}bg-white/10 text-white shadow-sm font-bold border border-white/10{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+      <i data-lucide="pie-chart" class="w-4 h-4 {% if request.resolver_match.url_name == 'admin_page' %}text-white{% else %}text-white/40{% endif %}"></i>
+      Overview
+      {% if request.resolver_match.url_name == 'admin_page' %}
+        <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-white rounded-full"></span>
+      {% endif %}
+    </a>
+
+    <!-- Users -->
+    <a href="{% if request.resolver_match.url_name == 'admin_page' %}#users-section{% else %}{% url 'admin_page' %}#users-section{% endif %}" class="relative flex items-center gap-2 px-3 py-1.5 rounded-xl transition-colors text-white/60 hover:text-white hover:bg-white/5">
+      <i data-lucide="users" class="w-4 h-4 text-white/40"></i>
+      Users
+    </a>
+
+    <!-- Pools -->
+    <a href="{% if request.resolver_match.url_name == 'admin_page' %}#pools-section{% else %}{% url 'admin_page' %}#pools-section{% endif %}" class="relative flex items-center gap-2 px-3 py-1.5 rounded-xl transition-colors text-white/60 hover:text-white hover:bg-white/5">
+      <i data-lucide="layers" class="w-4 h-4 text-white/40"></i>
+      Pools
+    </a>
+
+    <!-- Disputes -->
+    <a href="{% if request.resolver_match.url_name == 'admin_page' %}#disputes-section{% else %}{% url 'admin_page' %}#disputes-section{% endif %}" class="relative flex items-center gap-2 px-3 py-1.5 rounded-xl transition-colors text-white/60 hover:text-white hover:bg-white/5">
+      <i data-lucide="alert-triangle" class="w-4 h-4 text-white/40"></i>
+      Disputes
+    </a>
+
+    <!-- Payments -->
+    <a href="{% if request.resolver_match.url_name == 'admin_page' %}#payments-section{% else %}{% url 'admin_page' %}#payments-section{% endif %}" class="relative flex items-center gap-2 px-3 py-1.5 rounded-xl transition-colors text-white/60 hover:text-white hover:bg-white/5">
+      <i data-lucide="credit-card" class="w-4 h-4 text-white/40"></i>
+      Payments
+    </a>
+
+    <!-- Services & Pricing -->
+    <a href="{% if request.resolver_match.url_name == 'admin_page' %}#services-section{% else %}{% url 'admin_page' %}#services-section{% endif %}" class="relative flex items-center gap-2 px-3 py-1.5 rounded-xl transition-colors text-white/60 hover:text-white hover:bg-white/5">
+      <i data-lucide="tag" class="w-4 h-4 text-white/40"></i>
+      Services
+    </a>
+
+    <!-- Settings (Separate URL Page) -->
+    <a href="{% url 'settings' %}" class="relative flex items-center gap-2 px-3 py-1.5 rounded-xl transition-colors {% if request.resolver_match.url_name == 'settings' %}bg-white/10 text-white shadow-sm font-bold border border-white/10{% else %}text-white/60 hover:text-white hover:bg-white/5{% endif %}">
+      <i data-lucide="settings" class="w-4 h-4 {% if request.resolver_match.url_name == 'settings' %}text-white{% else %}text-white/40{% endif %}"></i>
+      Settings
+      {% if request.resolver_match.url_name == 'settings' %}
+        <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-white rounded-full"></span>
+      {% endif %}
+    </a>
+  </nav>
+  
+  <!-- Desktop Admin Action Profile / Logout -->
+  <div class="hidden md:flex items-center gap-4">
+    <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-[#111827] text-white border border-white/20 shadow-lg">
+      <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+      <div class="text-left">
+        <span class="text-xs font-bold block leading-tight">Hi, {{ request.user.username|default:"SuperAdmin" }}</span>
+        <span class="text-[9px] text-white/40 block leading-tight">System Controller</span>
+      </div>
+    </div>
+    <a href="{% url 'logout' %}">
+      <button class="flex items-center gap-2 text-sm font-black px-5 py-2 rounded-full transition-all hover:-translate-y-0.5 bg-red-600 text-white hover:bg-red-700 shadow-lg">
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+        Logout
+      </button>
+    </a>
+  </div>
+
+  <!-- Mobile Navigation Menu Toggle & Controls -->
+  <div class="flex md:hidden items-center gap-3 z-50">
+    <div class="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-full bg-[#111827] text-white border border-white/20 shadow-lg">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+      <span>{{ request.user.username|default:"Admin" }}</span>
+    </div>
+
+    <!-- Hamburger Menu Button -->
+    <button 
+      id="mobile-menu-button" 
+      class="p-2 rounded-xl bg-[#111827] border border-white/20 text-white shadow-lg focus:outline-none"
+      aria-label="Toggle Mobile Menu"
+    >
+      <i data-lucide="menu" id="menu-icon" class="w-6 h-6"></i>
+    </button>
+  </div>
+
+  <!-- Mobile Slide-out Menu Drawer -->
+  <div 
+    id="mobile-menu" 
+    class="fixed inset-x-0 top-0 pt-24 pb-8 px-6 bg-[#090d16] border-b border-white/10 shadow-2xl flex flex-col gap-6 transform -translate-y-full transition-transform duration-300 ease-in-out md:hidden z-40"
+  >
+    <nav class="flex flex-col gap-2 text-base font-semibold">
+      <a href="{% url 'admin_page' %}" class="mobile-nav-link flex items-center justify-between py-3 px-4 rounded-xl border border-white/5 transition-colors {% if request.resolver_match.url_name == 'admin_page' %}bg-white/10 text-white font-bold border-white/20{% else %}text-white/75 hover:text-white hover:bg-white/5{% endif %}">
+        <div class="flex items-center gap-3">
+          <i data-lucide="pie-chart" class="w-5 h-5 {% if request.resolver_match.url_name == 'admin_page' %}text-white{% else %}text-white/50{% endif %}"></i>
+          Overview
+        </div>
+        {% if request.resolver_match.url_name == 'admin_page' %}
+          <span class="w-2 h-2 rounded-full bg-white"></span>
+        {% endif %}
+      </a>
+
+      <a href="{% if request.resolver_match.url_name == 'admin_page' %}#users-section{% else %}{% url 'admin_page' %}#users-section{% endif %}" class="mobile-nav-link flex items-center justify-between py-3 px-4 rounded-xl border border-white/5 transition-colors text-white/75 hover:text-white hover:bg-white/5">
+        <div class="flex items-center gap-3">
+          <i data-lucide="users" class="w-5 h-5 text-white/50"></i>
+          Users Management
+        </div>
+      </a>
+
+      <a href="{% if request.resolver_match.url_name == 'admin_page' %}#pools-section{% else %}{% url 'admin_page' %}#pools-section{% endif %}" class="mobile-nav-link flex items-center justify-between py-3 px-4 rounded-xl border border-white/5 transition-colors text-white/75 hover:text-white hover:bg-white/5">
+        <div class="flex items-center gap-3">
+          <i data-lucide="layers" class="w-5 h-5 text-white/50"></i>
+          Pools Control
+        </div>
+      </a>
+
+      <a href="{% if request.resolver_match.url_name == 'admin_page' %}#disputes-section{% else %}{% url 'admin_page' %}#disputes-section{% endif %}" class="mobile-nav-link flex items-center justify-between py-3 px-4 rounded-xl border border-white/5 transition-colors text-white/75 hover:text-white hover:bg-white/5">
+        <div class="flex items-center gap-3">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-white/50"></i>
+          Disputes Resolution
+        </div>
+      </a>
+
+      <a href="{% if request.resolver_match.url_name == 'admin_page' %}#payments-section{% else %}{% url 'admin_page' %}#payments-section{% endif %}" class="mobile-nav-link flex items-center justify-between py-3 px-4 rounded-xl border border-white/5 transition-colors text-white/75 hover:text-white hover:bg-white/5">
+        <div class="flex items-center gap-3">
+          <i data-lucide="credit-card" class="w-5 h-5 text-white/50"></i>
+          Payments & Escrow
+        </div>
+      </a>
+
+      <a href="{% if request.resolver_match.url_name == 'admin_page' %}#services-section{% else %}{% url 'admin_page' %}#services-section{% endif %}" class="mobile-nav-link flex items-center justify-between py-3 px-4 rounded-xl border border-white/5 transition-colors text-white/75 hover:text-white hover:bg-white/5">
+        <div class="flex items-center gap-3">
+          <i data-lucide="tag" class="w-5 h-5 text-white/50"></i>
+          Services & Pricing
+        </div>
+      </a>
+
+      <a href="{% url 'settings' %}" class="mobile-nav-link flex items-center justify-between py-3 px-4 rounded-xl border border-white/5 transition-colors {% if request.resolver_match.url_name == 'settings' %}bg-white/10 text-white font-bold border-white/20{% else %}text-white/75 hover:text-white hover:bg-white/5{% endif %}">
+        <div class="flex items-center gap-3">
+          <i data-lucide="settings" class="w-5 h-5 {% if request.resolver_match.url_name == 'settings' %}text-white{% else %}text-white/50{% endif %}"></i>
+          Settings
+        </div>
+        {% if request.resolver_match.url_name == 'settings' %}
+          <span class="w-2 h-2 rounded-full bg-white"></span>
+        {% endif %}
+      </a>
+    </nav>
+
+    <div class="flex flex-col gap-3 pt-2">
+      <a href="{% url 'logout' %}" class="w-full">
+        <button class="w-full flex items-center justify-center gap-2 text-sm font-black px-6 py-3 rounded-xl bg-red-600 text-white shadow-lg text-center hover:bg-red-700 transition-colors">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          Logout
+        </button>
+      </a>
+    </div>
+  </div>
+</header>
+</header>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+      gsap.registerPlugin(ScrollTrigger);
+    }
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+
+    const menuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuIcon = document.getElementById('menu-icon');
+    const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+    let isMenuOpen = false;
+
+    function toggleMenu() {
+      isMenuOpen = !isMenuOpen;
+      if (isMenuOpen) {
+        mobileMenu.classList.remove('-translate-y-full');
+        mobileMenu.classList.add('translate-y-0');
+        menuIcon.setAttribute('data-lucide', 'x');
+      } else {
+        mobileMenu.classList.remove('translate-y-0');
+        mobileMenu.classList.add('-translate-y-full');
+        menuIcon.setAttribute('data-lucide', 'menu');
+      }
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
+
+    if (menuButton && mobileMenu) {
+      menuButton.addEventListener('click', toggleMenu);
+      mobileNavLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          if (isMenuOpen) toggleMenu();
+        });
+      });
+    }
+  });
+</script>

@@ -1,0 +1,551 @@
+{% extends 'navbar.html' %}
+
+{% block content %}
+<main class="min-h-screen text-white pt-24 pb-24" style="background: #05080F;">
+  <div class="px-4 md:px-8 lg:px-16 max-w-5xl mx-auto w-full space-y-10">
+
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/10">
+      <div>
+        <p class="text-xs font-bold tracking-widest uppercase text-white/60">System Configuration</p>
+        <h1 class="text-3xl md:text-4xl font-black text-white">Platform Settings</h1>
+        <p class="text-xs text-white/50">Manage official company contacts, platform commission percentages, and bank settlement details.</p>
+      </div>
+      <button onclick="openPasswordModal()" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all">
+        Change Password
+      </button>
+    </div>
+
+    <div id="toast" class="hidden fixed top-6 right-6 z-[100] px-5 py-3 rounded-xl text-xs font-bold shadow-2xl"></div>
+    {% if messages %}
+  <div class="space-y-3">
+    {% for message in messages %}
+      <div class="rounded-xl p-4 text-xs font-semibold flex items-center gap-3
+                  {% if message.tags == 'error' %}bg-red-500/10 border border-red-500/30 text-red-300
+                  {% elif message.tags == 'success' %}bg-emerald-500/10 border border-emerald-500/30 text-emerald-300
+                  {% else %}bg-white/5 border border-white/10 text-white/70{% endif %}">
+        <span class="w-2 h-2 rounded-full shrink-0
+                     {% if message.tags == 'error' %}bg-red-400
+                     {% elif message.tags == 'success' %}bg-emerald-400
+                     {% else %}bg-white/40{% endif %}"></span>
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+    <!-- SECTION 1: Official Contact Information -->
+    <div class="rounded-[2rem] p-6 md:p-8 space-y-6 shadow-2xl" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+      <div class="flex items-center justify-between border-b border-white/10 pb-4">
+        <div>
+          <h3 class="text-base font-bold text-white">Official Contact Information</h3>
+          <span class="text-xs text-white/40">Used for automated receipts, support emails, and customer notifications</span>
+        </div>
+        <button id="contact-edit-btn" onclick="enterEdit('contact')" class="px-4 py-2 rounded-lg text-xs font-bold bg-white/10 border border-white/20 hover:bg-white/20 transition-all">
+          Edit
+        </button>
+      </div>
+
+      <!-- VIEW MODE -->
+      <div id="contact-view" class="grid grid-cols-1 md:grid-cols-2 gap-6 {% if not site_info.phone or not site_info.email %}hidden{% endif %}">
+        <div>
+          <p class="text-[10px] uppercase font-bold tracking-wider text-white/40">Official Phone Number</p>
+          <p id="contact-view-phone" class="text-sm text-white font-mono mt-1">{{ site_info.phone }}</p>
+        </div>
+        <div>
+          <p class="text-[10px] uppercase font-bold tracking-wider text-white/40">Official Email Address</p>
+          <p id="contact-view-email" class="text-sm text-white font-mono mt-1">{{ site_info.email }}</p>
+        </div>
+      </div>
+
+      <!-- EDIT MODE -->
+      <div id="contact-edit" class="space-y-6 {% if site_info.phone and site_info.email %}hidden{% endif %}">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="text-[10px] uppercase font-bold tracking-wider text-white/60 block">Official Phone Number</label>
+            <input id="contact-input-phone" type="text" maxlength="13" value="{{ site_info.phone }}"
+                   oninput="this.value = this.value.replace(/\D/g, '')"
+                   placeholder="234XXXXXXXXXX"
+                   class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/40 font-mono">
+            <span class="text-[10px] text-white/40 block">Must start with 234 followed by exactly 10 digits</span>
+          </div>
+          <div class="space-y-2">
+            <label class="text-[10px] uppercase font-bold tracking-wider text-white/60 block">Official Email Address</label>
+            <input id="contact-input-email" type="email" value="{{ site_info.email }}"
+                   class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/40 font-mono">
+          </div>
+        </div>
+        <div id="contact-error" class="hidden text-xs text-red-400"></div>
+        <div class="flex justify-end gap-3">
+          {% if site_info.phone and site_info.email %}
+          <button onclick="cancelEdit('contact')" class="px-4 py-2 rounded-lg text-xs font-bold text-white/60 hover:text-white transition-all">Cancel</button>
+          {% endif %}
+          <button onclick="saveContact()" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-white/90 transition-all">Save</button>
+        </div>
+      </div>
+    </div>
+
+   <!-- SECTION 2: Platform Margins & Service Pricing -->
+<div class="rounded-[2rem] p-6 md:p-8 space-y-6 shadow-2xl" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+  <div class="flex items-center justify-between border-b border-white/10 pb-4">
+    <div>
+      <h3 class="text-base font-bold text-white">Platform Margins & Service Pricing</h3>
+      <span class="text-xs text-white/40">Configure site commission cuts and general pricing limits</span>
+    </div>
+    <button id="pricing-edit-btn" onclick="enterEdit('pricing')" class="px-4 py-2 rounded-lg text-xs font-bold bg-white/10 border border-white/20 hover:bg-white/20 transition-all">
+      Edit
+    </button>
+  </div>
+
+  <!-- VIEW MODE -->
+  <div id="pricing-view" class="grid grid-cols-1 md:grid-cols-2 gap-6 {% if not site_info.price %}hidden{% endif %}">
+    <div>
+      <p class="text-[10px] uppercase font-bold tracking-wider text-white/40">Official Site Percentage</p>
+      <p id="pricing-view-percentage" class="text-sm text-white font-mono mt-1">{{ site_info.site_percentage|default:"0" }}%</p>
+    </div>
+    <div>
+      <p class="text-[10px] uppercase font-bold tracking-wider text-white/40">Default Global Price Cap</p>
+      <p id="pricing-view-price" class="text-sm text-white font-mono mt-1">₦{{ site_info.price|default:"0" }}</p>
+    </div>
+  </div>
+
+  <!-- EDIT MODE -->
+  <div id="pricing-edit" class="space-y-6 {% if site_info.price %}hidden{% endif %}">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="space-y-2">
+        <label class="text-[10px] uppercase font-bold tracking-wider text-white/60 block">Official Site Percentage (Commission Cut)</label>
+        <div class="relative">
+          <input id="pricing-input-percentage" type="text" value="{{ site_info.site_percentage|default:'0' }}"
+                 class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/40 font-mono pr-12">
+          <span class="absolute right-4 top-3 text-xs text-white/40 font-bold">%</span>
+        </div>
+        <span class="text-[10px] text-white/40 block">Percentage charged per pool payout transaction</span>
+      </div>
+      <div class="space-y-2">
+        <label class="text-[10px] uppercase font-bold tracking-wider text-white/60 block">Default Global Price Cap (₦)</label>
+        <input id="pricing-input-price" type="text" value="{{ site_info.price|default:'0' }}"
+               class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/40 font-mono">
+        <span class="text-[10px] text-white/40 block">Maximum baseline limit for standard service pools</span>
+      </div>
+    </div>
+    <div id="pricing-error" class="hidden text-xs text-red-400"></div>
+    <div class="flex justify-end gap-3">
+      {% if site_info.price %}
+      <button onclick="cancelEdit('pricing')" class="px-4 py-2 rounded-lg text-xs font-bold text-white/60 hover:text-white transition-all">Cancel</button>
+      {% endif %}
+      <button onclick="savePricing()" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-white/90 transition-all">Save</button>
+    </div>
+  </div>
+</div>
+    <!-- SECTION 3: Company Bank Settlement Account -->
+    <div class="rounded-[2rem] p-6 md:p-8 space-y-6 shadow-2xl" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+      <div class="flex items-center justify-between border-b border-white/10 pb-4">
+        <div>
+          <h3 class="text-base font-bold text-white">Company Bank Settlement Account</h3>
+          <span class="text-xs text-white/40">Corporate bank account where platform commissions and fees are settled</span>
+        </div>
+        <button id="bank-edit-btn" onclick="enterEdit('bank')" class="px-4 py-2 rounded-lg text-xs font-bold bg-white/10 border border-white/20 hover:bg-white/20 transition-all">
+          Edit
+        </button>
+      </div>
+
+      <!-- VIEW MODE -->
+      <div id="bank-view" class="grid grid-cols-1 md:grid-cols-3 gap-6 {% if not site_info.bank or not site_info.account_number or not site_info.account_name %}hidden{% endif %}">
+        <div>
+          <p class="text-[10px] uppercase font-bold tracking-wider text-white/40">Bank Name</p>
+          <p id="bank-view-name" class="text-sm text-white mt-1">{{ site_info.bank }}</p>
+        </div>
+        <div>
+          <p class="text-[10px] uppercase font-bold tracking-wider text-white/40">Account Number</p>
+          <p id="bank-view-number" class="text-sm text-white font-mono mt-1">{{ site_info.account_number }}</p>
+        </div>
+        <div>
+          <p class="text-[10px] uppercase font-bold tracking-wider text-white/40">Account Name</p>
+          <p id="bank-view-account-name" class="text-sm text-white mt-1">{{ site_info.account_name }}</p>
+        </div>
+      </div>
+
+      <!-- EDIT MODE -->
+      <div id="bank-edit" class="space-y-6 {% if site_info.bank and site_info.account_number and site_info.account_name %}hidden{% endif %}">
+
+        <!-- Searchable Bank Dropdown -->
+        <div class="relative" id="bank-dropdown-container">
+          <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-semibold">Select Bank</label>
+          <div class="relative">
+            <input type="text" id="bank-search-input" placeholder="Search or select your bank..." autocomplete="off"
+                   value="{{ site_info.bank }}"
+                   class="w-full px-4 py-3 rounded-xl text-sm font-semibold text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-all cursor-pointer"
+                   style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+            <input type="hidden" id="bank-code-hidden" value="{{ site_info.bank_code }}">
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40 text-xs">▼</div>
+          </div>
+          <div id="bank-options-list" class="absolute left-0 right-0 mt-2 max-h-56 overflow-y-auto rounded-xl shadow-2xl z-50 hidden custom-scrollbar"
+               style="background: #090E17; border: 1px solid rgba(255,255,255,0.1);">
+            <div class="p-3 text-xs text-white/40 text-center">Loading banks...</div>
+          </div>
+        </div>
+
+        <!-- Account Number -->
+        <div>
+          <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-semibold">Account Number</label>
+          <input type="text" id="account-input" maxlength="10" value="{{ site_info.account_number }}" placeholder="Enter 10-digit account number"
+                 class="w-full px-4 py-3 rounded-xl text-sm font-semibold text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-all"
+                 style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+          <div id="account-name-container" class="mt-2 hidden items-center gap-1.5">
+            <span id="status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span id="account-name-text" class="text-xs font-bold text-emerald-400"></span>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+          {% if site_info.bank and site_info.account_number and site_info.account_name %}
+          <button onclick="cancelEdit('bank')" class="px-4 py-2 rounded-lg text-xs font-bold text-white/60 hover:text-white transition-all">Cancel</button>
+          {% endif %}
+          <button id="save-bank-btn" disabled class="px-5 py-2.5 rounded-xl font-bold text-xs bg-white text-black shadow-lg opacity-50 cursor-not-allowed transition-all">
+            Save Account
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Change Password Modal -->
+<div id="password-modal" class="hidden fixed inset-0 z-[90] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.7);">
+  <div class="w-full max-w-md rounded-[2rem] p-6 md:p-8 space-y-6 shadow-2xl" style="background: #0a0e18; border: 1px solid rgba(255,255,255,0.1);">
+    <div class="flex items-center justify-between border-b border-white/10 pb-4">
+      <h3 class="text-base font-bold text-white">Change Password</h3>
+      <button onclick="closePasswordModal()" class="text-white/40 hover:text-white text-lg leading-none">&times;</button>
+    </div>
+
+    <div class="space-y-4">
+      <div class="space-y-2">
+        <label class="text-[10px] uppercase font-bold tracking-wider text-white/60 block">Current Password</label>
+        <input id="password-old" type="password"
+               class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-white/40">
+      </div>
+      <div class="space-y-2">
+        <label class="text-[10px] uppercase font-bold tracking-wider text-white/60 block">New Password</label>
+        <input id="password-new" type="password"
+               class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-white/40">
+        <span class="text-[10px] text-white/40 block">At least 8 characters, must include a number</span>
+      </div>
+    </div>
+
+    <div id="password-error" class="hidden text-xs text-red-400"></div>
+
+    <div class="flex justify-end gap-3 pt-2">
+      <button onclick="closePasswordModal()" class="px-4 py-2 rounded-lg text-xs font-bold text-white/60 hover:text-white transition-all">Cancel</button>
+      <button onclick="submitPasswordChange()" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-white/90 transition-all">Change Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Scrollbar -->
+<style>
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+</style>
+
+<script>
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+function showToast(message, ok) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = `fixed top-6 right-6 z-[100] px-5 py-3 rounded-xl text-xs font-bold shadow-2xl ${ok ? 'bg-emerald-500 text-black' : 'bg-red-500 text-white'}`;
+  toast.classList.remove('hidden');
+  setTimeout(() => toast.classList.add('hidden'), 3500);
+}
+
+async function postJSON(url, body) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
+// --- generic view/edit toggling ---
+function enterEdit(section) {
+  document.getElementById(`${section}-view`).classList.add('hidden');
+  document.getElementById(`${section}-edit`).classList.remove('hidden');
+  document.getElementById(`${section}-edit-btn`).classList.add('hidden');
+}
+
+function cancelEdit(section) {
+  document.getElementById(`${section}-edit`).classList.add('hidden');
+  document.getElementById(`${section}-view`).classList.remove('hidden');
+  document.getElementById(`${section}-edit-btn`).classList.remove('hidden');
+}
+
+function exitEditToView(section) {
+  document.getElementById(`${section}-edit`).classList.add('hidden');
+  document.getElementById(`${section}-view`).classList.remove('hidden');
+  document.getElementById(`${section}-edit-btn`).classList.remove('hidden');
+}
+
+// --- Contact section ---
+async function saveContact() {
+  const phone = document.getElementById('contact-input-phone').value.trim();
+  const email = document.getElementById('contact-input-email').value.trim();
+  const errorEl = document.getElementById('contact-error');
+  errorEl.classList.add('hidden');
+
+  const result = await postJSON("{% url 'update_site_info' %}", { section: 'contact', phone, email });
+  if (!result.status) {
+    errorEl.textContent = result.message;
+    errorEl.classList.remove('hidden');
+    return;
+  }
+
+  document.getElementById('contact-view-phone').textContent = result.data.phone;
+  document.getElementById('contact-view-email').textContent = result.data.email;
+  exitEditToView('contact');
+  showToast('Contact information updated.', true);
+}
+
+// --- Pricing section ---
+async function savePricing() {
+  const site_percentage = document.getElementById('pricing-input-percentage').value.trim();
+  const price = document.getElementById('pricing-input-price').value.trim();
+  const errorEl = document.getElementById('pricing-error');
+  errorEl.classList.add('hidden');
+
+  const result = await postJSON("{% url 'update_site_info' %}", { section: 'pricing', site_percentage, price });
+  if (!result.status) {
+    errorEl.textContent = result.message;
+    errorEl.classList.remove('hidden');
+    return;
+  }
+
+  document.getElementById('pricing-view-percentage').textContent = `${result.data.site_percentage}%`;
+  document.getElementById('pricing-view-price').textContent = `₦${result.data.price}`;
+  exitEditToView('pricing');
+  showToast('Pricing updated.', true);
+}
+
+// --- Bank section (searchable dropdown + resolve/save) ---
+const bankSearchInput = document.getElementById('bank-search-input');
+const bankCodeHidden = document.getElementById('bank-code-hidden');
+const bankOptionsList = document.getElementById('bank-options-list');
+const accountInput = document.getElementById('account-input');
+const nameContainer = document.getElementById('account-name-container');
+const nameText = document.getElementById('account-name-text');
+const statusDot = document.getElementById('status-dot');
+const saveBankBtn = document.getElementById('save-bank-btn');
+
+let allBanks = [];
+let verifiedAccountName = "";
+let banksLoaded = false;
+
+async function loadBanks() {
+  if (banksLoaded) return;
+  try {
+    const response = await fetch("{% url 'get_banks' %}");
+    const result = await response.json();
+    if (result.status && result.data) {
+      allBanks = result.data;
+      renderBankOptions(allBanks);
+      banksLoaded = true;
+    } else {
+      bankOptionsList.innerHTML = '<div class="p-3 text-xs text-rose-400 text-center">Failed to load banks</div>';
+    }
+  } catch (err) {
+    bankOptionsList.innerHTML = '<div class="p-3 text-xs text-rose-400 text-center">Failed to load banks</div>';
+  }
+}
+
+function renderBankOptions(banks) {
+  if (banks.length === 0) {
+    bankOptionsList.innerHTML = '<div class="p-3 text-xs text-white/40 text-center">No banks found</div>';
+    return;
+  }
+  bankOptionsList.innerHTML = '';
+  banks.forEach(bank => {
+    const div = document.createElement('div');
+    div.className = "px-4 py-3 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white cursor-pointer transition-colors";
+    div.textContent = bank.name;
+    div.addEventListener('click', () => {
+      bankSearchInput.value = bank.name;
+      bankCodeHidden.value = bank.code;
+      bankOptionsList.classList.add('hidden');
+      if (accountInput.value.length === 10) {
+        resolveAccount();
+      }
+    });
+    bankOptionsList.appendChild(div);
+  });
+}
+
+bankSearchInput.addEventListener('click', () => {
+  loadBanks();
+  bankOptionsList.classList.remove('hidden');
+});
+
+bankSearchInput.addEventListener('input', (e) => {
+  const query = e.target.value.toLowerCase();
+  bankOptionsList.classList.remove('hidden');
+  bankCodeHidden.value = "";
+  saveBankBtn.setAttribute('disabled', 'true');
+  saveBankBtn.classList.add('opacity-50', 'cursor-not-allowed');
+  const filtered = allBanks.filter(bank => bank.name.toLowerCase().includes(query));
+  renderBankOptions(filtered);
+});
+
+document.addEventListener('click', (e) => {
+  if (!document.getElementById('bank-dropdown-container').contains(e.target)) {
+    bankOptionsList.classList.add('hidden');
+  }
+});
+
+async function resolveAccount() {
+  const accountNumber = accountInput.value.trim();
+  const bankCode = bankCodeHidden.value;
+
+  if (!bankCode) {
+    nameContainer.classList.remove('hidden');
+    nameContainer.classList.add('flex');
+    statusDot.className = "w-1.5 h-1.5 rounded-full bg-rose-400";
+    nameText.className = "text-xs font-bold text-rose-400";
+    nameText.textContent = "Please select a bank from the list first.";
+    return;
+  }
+
+  if (accountNumber.length === 10 && bankCode) {
+    nameContainer.classList.remove('hidden');
+    nameContainer.classList.add('flex');
+    statusDot.className = "w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse";
+    nameText.className = "text-xs font-bold text-amber-400";
+    nameText.textContent = "Resolving account...";
+
+    try {
+      const response = await fetch("{% url 'resolve_bank' %}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+        body: JSON.stringify({ account_number: accountNumber, bank_code: bankCode })
+      });
+      const data = await response.json();
+
+      if (response.ok && data.status) {
+        verifiedAccountName = data.account_name;
+        statusDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400";
+        nameText.className = "text-xs font-bold text-emerald-400";
+        nameText.textContent = verifiedAccountName;
+
+        saveBankBtn.removeAttribute('disabled');
+        saveBankBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      } else {
+        throw new Error(data.message || "Account does not exist");
+      }
+    } catch (err) {
+      verifiedAccountName = "";
+      statusDot.className = "w-1.5 h-1.5 rounded-full bg-rose-400";
+      nameText.className = "text-xs font-bold text-rose-400";
+      nameText.textContent = err.message || "Invalid account details";
+
+      saveBankBtn.setAttribute('disabled', 'true');
+      saveBankBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+  } else {
+    nameContainer.classList.add('hidden');
+    nameContainer.classList.remove('flex');
+  }
+}
+
+accountInput.addEventListener('input', (e) => {
+  e.target.value = e.target.value.replace(/\D/g, '');
+  if (e.target.value.length === 10) {
+    resolveAccount();
+  } else {
+    nameContainer.classList.add('hidden');
+    saveBankBtn.setAttribute('disabled', 'true');
+    saveBankBtn.classList.add('opacity-50', 'cursor-not-allowed');
+  }
+});
+
+saveBankBtn.addEventListener('click', async () => {
+  const accountNumber = accountInput.value.trim();
+  const bankCode = bankCodeHidden.value;
+  const bankName = bankSearchInput.value.trim();
+
+  if (!verifiedAccountName) {
+    showToast("Please wait for the account to be successfully verified first.", false);
+    return;
+  }
+
+  saveBankBtn.textContent = "Saving...";
+
+  try {
+    const response = await fetch("{% url 'admin_resolve_bank' %}", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+      body: JSON.stringify({
+        account_number: accountNumber,
+        bank_code: bankCode,
+        bank_name: bankName,
+        account_name: verifiedAccountName
+      })
+    });
+    const data = await response.json();
+
+    if (response.ok && data.status) {
+      document.getElementById('bank-view-name').textContent = data.data.bank;
+      document.getElementById('bank-view-number').textContent = data.data.account_number;
+      document.getElementById('bank-view-account-name').textContent = data.data.account_name;
+      exitEditToView('bank');
+      showToast('Bank details updated.', true);
+    } else {
+      showToast(data.message || "Failed to save account.", false);
+    }
+  } catch (err) {
+    showToast("An error occurred while saving.", false);
+  } finally {
+    saveBankBtn.textContent = "Save Account";
+  }
+});
+
+// --- Change password modal ---
+function openPasswordModal() {
+  document.getElementById('password-modal').classList.remove('hidden');
+}
+function closePasswordModal() {
+  document.getElementById('password-modal').classList.add('hidden');
+  document.getElementById('password-old').value = '';
+  document.getElementById('password-new').value = '';
+  document.getElementById('password-error').classList.add('hidden');
+}
+async function submitPasswordChange() {
+  const old_password = document.getElementById('password-old').value;
+  const new_password = document.getElementById('password-new').value;
+  const errorEl = document.getElementById('password-error');
+
+  const result = await postJSON("{% url 'change_password' %}", { old_password, new_password });
+  if (!result.status) {
+    errorEl.textContent = result.message;
+    errorEl.classList.remove('hidden');
+    return;
+  }
+  closePasswordModal();
+  showToast('Password changed successfully.', true);
+}
+</script>
+{% endblock %}

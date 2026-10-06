@@ -1,0 +1,276 @@
+{% if not an_admin %}
+<!-- 9. Pool Vault Compartment -->
+<div class="rounded-[1.5rem] p-6 md:p-8 space-y-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);" id="vault-compartment" data-pool-id="{{ pool.id }}">
+  <div class="flex justify-between items-center">
+    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+      <span>🔐</span> Pool Vault
+    </h3>
+    <div class="flex items-center gap-2">
+     {% if def_host %}
+  {% if not pool.active %}
+    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/5 text-white/30 border border-white/5 cursor-not-allowed">
+      Edit Vault
+    </span>
+  {% else %}
+    <a href="{% url 'edit_vault' pool.vault.pk %}" class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/10 text-white border border-white/20 hover:bg-white/20 transition">
+      Edit Vault
+    </a>
+  {% endif %}
+{% endif %}
+      <span id="vault-status-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {% if can_access_vault %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20{% else %}bg-red-500/10 text-red-400 border border-red-500/20{% endif %}">
+        {% if can_access_vault %}Unlocked{% else %}Locked{% endif %}
+      </span>
+    </div>
+  </div>
+  
+  <!-- Locked State Container -->
+  <div id="vault-locked-view" class="p-6 rounded-2xl bg-white/[0.02] border border-white/5 text-center space-y-3 {% if can_access_vault %}hidden{% endif %}">
+    <p class="text-xs text-white/60">
+      Your subscription login details will be available here once you have joined, paid, and met the required access conditions.
+    </p>
+    <button disabled class="px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-white/30 border border-white/10 cursor-not-allowed">
+      Unlock Vault
+    </button>
+    
+  </div>
+
+  <!-- Ready to Open Container (Triggers Password Modal) -->
+  <div id="vault-ready-view" class="p-6 rounded-2xl bg-white/[0.02] border border-white/5 text-center space-y-3 {% if not can_access_vault %}hidden{% endif %}">
+    <p class="text-xs text-white/60">
+      Subscription credentials are secure and verified. Click below to open your vault compartment.
+    </p>
+    {% if not pool.active %}
+        <button type="button" id="open-vault-modal-btn" class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-black hover:bg-white/90 transition shadow-lg cursor-not-allowed" disabled>
+      Open Vault
+    </button>
+    {% else %}
+    <button type="button" id="open-vault-modal-btn" class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-black hover:bg-white/90 transition shadow-lg">
+      Open Vault
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- Revealed Credentials Display (Loaded via AJAX after password verification) -->
+  <div id="vault-revealed-view" class="hidden space-y-4 pt-2">
+    <div class="p-4 rounded-xl bg-black/40 border border-white/10 space-y-3 text-xs">
+      <div class="flex justify-between items-center border-b border-white/10 pb-2">
+        <span class="text-white/40 font-medium">Login Method:</span>
+        <span id="vault-display-method" class="text-white font-bold uppercase tracking-wide"></span>
+      </div>
+      
+      <!-- Login Code Notice (Dynamic) -->
+      <div id="vault-code-notice" class="hidden p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px] leading-relaxed flex items-start gap-2">
+        <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span><strong>Note:</strong> This vault utilizes a login code. Please chat the host directly to request the current active code as login codes expire frequently and cannot be pre-written.</span>
+      </div>
+
+      <div class="space-y-2">
+        <span class="text-white/40 font-medium block">Credentials:</span>
+        <div id="vault-display-credentials" class="space-y-2">
+          <!-- Dynamically populated fields with SVG eye toggles -->
+        </div>
+      </div>
+
+      <div id="vault-instructions-wrapper" class="hidden space-y-1 pt-2 border-t border-white/10">
+        <span class="text-white/40 font-medium block">Instructions:</span>
+        <p id="vault-display-instructions" class="text-white/80 bg-white/5 p-3 rounded-lg leading-relaxed"></p>
+      </div>
+
+      <div class="flex justify-between items-center pt-2 text-[10px] text-white/40 border-t border-white/10">
+        <span>Updated at:</span>
+        <span id="vault-display-updated"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Password Confirmation Modal -->
+<div id="vault-password-modal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden">
+  <div class="w-full max-w-sm p-6 rounded-[1.5rem] bg-[#121212] border border-white/10 space-y-4 shadow-2xl">
+    <div class="flex justify-between items-center">
+      <h4 class="text-sm font-bold text-white">Confirm Your Password</h4>
+      <button type="button" id="close-vault-modal" class="text-white/40 hover:text-white text-xs">✕</button>
+    </div>
+    <p class="text-xs text-white/60 leading-relaxed">
+      For security purposes, please enter your account password to decrypt and view these vault credentials.
+    </p>
+    <form id="vault-password-form" class="space-y-3">
+      {% csrf_token %}
+      <input type="password" id="vault-confirm-password" placeholder="Enter account password" required class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-white/30">
+      <div id="vault-modal-error" class="text-[10px] text-red-400 hidden"></div>
+      <div class="flex gap-2 pt-1">
+        <button type="button" id="cancel-vault-modal" class="flex-1 py-2 rounded-xl text-xs font-semibold bg-white/5 text-white/60 hover:bg-white/10 transition">Cancel</button>
+        <button type="submit" id="vault-submit-btn" class="flex-1 py-2 rounded-xl text-xs font-semibold bg-white text-black hover:bg-white/90 transition">Confirm & Reveal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const vaultCompartment = document.getElementById('vault-compartment');
+    if (!vaultCompartment) return;
+
+    const poolId = vaultCompartment.dataset.poolId;
+    const openBtn = document.getElementById('open-vault-modal-btn');
+    const modal = document.getElementById('vault-password-modal');
+    const closeBtn = document.getElementById('close-vault-modal');
+    const cancelBtn = document.getElementById('cancel-vault-modal');
+    const form = document.getElementById('vault-password-form');
+    const passwordInput = document.getElementById('vault-confirm-password');
+    const errorDiv = document.getElementById('vault-modal-error');
+    const submitBtn = document.getElementById('vault-submit-btn');
+
+    const readyView = document.getElementById('vault-ready-view');
+    const revealedView = document.getElementById('vault-revealed-view');
+
+    function toggleModal(show) {
+        if (show) {
+            modal.classList.remove('hidden');
+            passwordInput.value = '';
+            errorDiv.classList.add('hidden');
+            passwordInput.focus();
+        } else {
+            modal.classList.add('hidden');
+        }
+    }
+
+    if (openBtn) openBtn.addEventListener('click', () => toggleModal(true));
+    if (closeBtn) closeBtn.addEventListener('click', () => toggleModal(false));
+    if (cancelBtn) cancelBtn.addEventListener('click', () => toggleModal(false));
+    modal.addEventListener('click', (e) => { if (e.target === modal) toggleModal(false); });
+
+    // Handle Password Submission & AJAX Data Fetching
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const password = passwordInput.value;
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            errorDiv.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Verifying...";
+
+            const formData = new URLSearchParams();
+            formData.append("password", password);
+
+            try {
+                const response = await fetch(`/pools/${poolId}/vault/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: formData
+                });
+
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    throw new Error("Server returned an invalid response.");
+                }
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Incorrect password confirmation');
+                }
+
+                toggleModal(false);
+
+                // Populate Vault Details
+                document.getElementById('vault-display-method').textContent = data.login_method || "N/A";
+                document.getElementById('vault-display-updated').textContent = data.updated_at || "";
+
+                // Check if login method mentions code
+                const codeNotice = document.getElementById('vault-code-notice');
+                const methodLower = (data.login_method || "").toLowerCase();
+                if (methodLower.includes('code') || methodLower.includes('otp')) {
+                    codeNotice.classList.remove('hidden');
+                } else {
+                    codeNotice.classList.add('hidden');
+                }
+
+                // Instructions
+                const instructionsWrapper = document.getElementById('vault-instructions-wrapper');
+                const instructionsText = document.getElementById('vault-display-instructions');
+                if (data.instructions && data.instructions.trim() !== '') {
+                    instructionsText.textContent = data.instructions;
+                    instructionsWrapper.classList.remove('hidden');
+                } else {
+                    instructionsWrapper.classList.add('hidden');
+                }
+
+                // Build credentials fields with SVG Eye icons
+                const credsContainer = document.getElementById('vault-display-credentials');
+                credsContainer.innerHTML = '';
+
+                if (data.credentials && typeof data.credentials === 'object') {
+                    for (const [key, value] of Object.entries(data.credentials)) {
+                        const fieldId = 'cred-field-' + Math.random().toString(36).substring(2, 9);
+                        const fieldRow = document.createElement('div');
+                        fieldRow.className = 'flex items-center justify-between p-2.5 rounded-lg bg-white/5 border border-white/5';
+                        
+                        fieldRow.innerHTML = `
+                            <span class="text-white/60 font-medium capitalize">${escapeHtml(key)}:</span>
+                            <div class="flex items-center gap-2">
+                                <span id="${fieldId}" class="font-mono text-white tracking-wider blur-sm select-none transition-all duration-200" data-raw-value="${escapeHtml(value)}">••••••••••••</span>
+                                <button type="button" class="eye-toggle-btn text-white/50 hover:text-white p-1 transition" data-target="${fieldId}" title="Toggle Visibility">
+                                    <svg class="w-4 h-4 eye-open-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    <svg class="w-4 h-4 eye-closed-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.07 10.07 0 014.136-5.4M9.88 9.88a3 3 0 104.24 4.24M3 3l18 18"></path></svg>
+                                </button>
+                            </div>
+                        `;
+                        credsContainer.appendChild(fieldRow);
+                    }
+                }
+
+                readyView.classList.add('hidden');
+                revealedView.classList.remove('hidden');
+
+            } catch (err) {
+                errorDiv.textContent = err.message;
+                errorDiv.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Confirm & Reveal";
+            }
+        });
+    }
+
+    // Eye Toggle Visibility Listener (SVG Switching)
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.eye-toggle-btn');
+        if (!btn) return;
+
+        const targetId = btn.dataset.target;
+        const span = document.getElementById(targetId);
+        if (!span) return;
+
+        const rawVal = span.dataset.rawValue;
+        const openIcon = btn.querySelector('.eye-open-icon');
+        const closedIcon = btn.querySelector('.eye-closed-icon');
+
+        if (span.classList.contains('blur-sm')) {
+            span.classList.remove('blur-sm', 'select-none');
+            span.textContent = rawVal;
+            openIcon.classList.add('hidden');
+            closedIcon.classList.remove('hidden');
+        } else {
+            span.classList.add('blur-sm', 'select-none');
+            span.textContent = '••••••••••••';
+            openIcon.classList.remove('hidden');
+            closedIcon.classList.add('hidden');
+        }
+    });
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+});
+</script>
+{% endif %}

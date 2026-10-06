@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoPay - Page Loader</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts for ultra-clean minimalist typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+  </style>
+</head>
+<body class="m-0 p-0 overflow-hidden" style="background: #05080F;">
+
+  <!-- Page Loader Component -->
+  <div 
+    id="page-loader"
+    class="fixed inset-0 z-[999] flex flex-col items-center justify-center gap-8 text-white"
+    style="background: #05080F;"
+  >
+    <!-- Logo Container -->
+    <div 
+      class="pl-logo text-4xl sm:text-5xl font-extrabold tracking-tight flex items-center gap-1.5"
+      style="opacity: 0; transform: translateY(20px);"
+    >
+      <span>CoPay</span><span class="text-xs sm:text-sm font-light uppercase tracking-widest px-2 py-0.5 border border-white/30 rounded-full ml-1">NG</span>
+    </div>
+
+    <!-- Creative Line Animation Container -->
+    <div class="relative w-48 h-8 flex items-center justify-center overflow-hidden">
+      <!-- Base subtle tracking line -->
+      <div class="absolute inset-x-0 h-[1px] bg-white/10"></div>
+      
+      <!-- Creative morphing/pulsing animated line elements -->
+      <div 
+        class="pl-bar absolute h-[2px] bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.7)]"
+        style="width: 100%; transform: scaleX(0); transform-origin: center;"
+      ></div>
+    </div>
+  </div>
+
+  <!-- GSAP CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  
+  <!-- Animation Script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const loader = document.getElementById("page-loader");
+      const tl = gsap.timeline({ delay: 0.2 });
+
+      // 1. Logo entrance fade and slide up
+      tl.to('.pl-logo', { 
+        opacity: 1, 
+        y: 0, 
+        duration: 0.7, 
+        ease: 'power3.out' 
+      })
+      // 2. Creative Line Animation: Expands from center with pulse effect
+      .to('.pl-bar', {
+        scaleX: 1,
+        duration: 0.8,
+        ease: 'power4.inOut',
+      })
+      // 3. Creative Line Animation: Compresses and glides to the right before vanishing
+      .to('.pl-bar', {
+        scaleX: 0,
+        transformOrigin: 'right center',
+        duration: 0.6,
+        ease: 'power4.inOut',
+        delay: 0.1,
+      })
+      // 4. Loader slides up to reveal page content
+      .to(loader, {
+        yPercent: -100,
+        duration: 1.0,
+        ease: 'power4.inOut',
+      }, '-=0.3');
+    });
+  </script>
+</body>
+</html>

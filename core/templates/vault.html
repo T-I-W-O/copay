@@ -1,0 +1,251 @@
+{% extends 'navbar.html' %}
+
+{% block content %}
+<!-- CoPay Create Vault Page -->
+<main class="min-h-screen text-white pt-24 pb-24" style="background: #05080F;">
+  <div class="px-4 md:px-8 lg:px-16 max-w-3xl mx-auto w-full space-y-8">
+
+    <!-- Navigation back & Context Header -->
+    <div class="space-y-4">
+      <button type="button" onclick="window.history.back()" class="inline-flex items-center gap-2 text-xs font-bold text-white/60 hover:text-white transition-colors bg-white/5 border border-white/10 px-3.5 py-2 rounded-xl">
+        ← Back to Pool Details
+      </button>
+
+      <div class="space-y-2">
+        <p class="text-xs font-bold tracking-widest uppercase text-white/60">Vault Management</p>
+        <h1 class="font-black text-white text-3xl md:text-4xl">Create Pool Vault</h1>
+        <div class="flex items-center gap-2 pt-1 text-sm text-white/75">
+          <span class="font-bold text-white">{{ service_name }}</span>
+          <span>•</span>
+          <span>Hosted by @{{ request.user.username }}</span>
+          <span>•</span>
+          <span class="text-emerald-400 font-semibold">{{ pending_pool.total_seats }} Seats</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Form Card Container -->
+    <form method="POST" id="vault-form" class="rounded-[2rem] p-6 md:p-10 space-y-8 shadow-2xl" 
+        style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+      {% csrf_token %}
+
+      <!-- 2. Login Method Selection -->
+      <div class="space-y-3">
+        <label for="login-method-select" class="block text-xs font-bold uppercase tracking-wider text-white">
+          How does this account normally sign in? <span class="text-red-400">*</span>
+        </label>
+        <div class="relative">
+          <select id="login-method-select" name="login_method" 
+                class="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-white/40 transition-all appearance-none cursor-pointer">
+            <option value="email_pass" class="bg-[#05080F] text-white">Email + Password</option>
+            <option value="phone_pass" class="bg-[#05080F] text-white">Phone + Password</option>
+            <option value="username_pass" class="bg-[#05080F] text-white">Username + Password</option>
+            <option value="email_phone_pass" class="bg-[#05080F] text-white">Email/Phone + Password</option>
+            <option value="email_phone_code" class="bg-[#05080F] text-white">Email/Phone + Login Code</option>
+            <option value="custom" class="bg-[#05080F] text-white">Custom</option>
+          </select>
+          <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40 text-xs">
+            ▼
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. & 4. Dynamic Credential Fields Wrapper -->
+      <div id="credential-dynamic-container" class="space-y-6 pt-2 border-t border-white/5">
+
+        <!-- Default State: Email + Password -->
+        <div data-method-fields="email_pass" class="credential-field-group space-y-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-white/70 mb-1.5">Email Address <span class="text-red-400">*</span></label>
+            <input type="email" name="cred_email" placeholder="e.g., {{ request.user.email|default:'account@example.com' }}" class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/40">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-white/70 mb-1.5">Password <span class="text-red-400">*</span></label>
+            <div class="relative">
+              <input type="password" name="cred_password" class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 pr-12 text-sm text-white focus:outline-none focus:border-white/40 password-input">
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors toggle-password">
+                <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone + Password -->
+        <div data-method-fields="phone_pass" class="credential-field-group space-y-4 hidden">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-white/70 mb-1.5">Phone Number <span class="text-red-400">*</span></label>
+            <input type="tel" name="cred_phone" placeholder="e.g., {{ user_profile.phone_number|default:'+2348123456789' }}" class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/40">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-white/70 mb-1.5">Password <span class="text-red-400">*</span></label>
+            <div class="relative">
+              <input type="password" name="cred_password" class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 pr-12 text-sm text-white focus:outline-none focus:border-white/40 password-input">
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors toggle-password">
+                <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Username + Password -->
+        <div data-method-fields="username_pass" class="credential-field-group space-y-4 hidden">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-white/70 mb-1.5">Username <span class="text-red-400">*</span></label>
+            <input type="text" name="cred_username" placeholder="e.g., {{ request.user.username }}" class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/40">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-white/70 mb-1.5">Password <span class="text-red-400">*</span></label>
+            <div class="relative">
+              <input type="password" name="cred_password" class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 pr-12 text-sm text-white focus:outline-none focus:border-white/40 password-input">
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors toggle-password">
+                <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Email/Phone + Password -->
+        <div data-method-fields="email_phone_pass" class="credential-field-group space-y-4 hidden">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-white/70 mb-1.5">Login Identifier (Email or Phone) <span class="text-red-400">*</span></label>
+            <input type="text" name="cred_identifier" placeholder="i.e., {{ request.user.email|default:'account@example.com' }}" class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/40">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-white/70 mb-1.5">Password <span class="text-red-400">*</span></label>
+            <div class="relative">
+              <input type="password" name="cred_password" class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 pr-12 text-sm text-white focus:outline-none focus:border-white/40 password-input">
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors toggle-password">
+                <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Email/Phone + Login Code -->
+        <div data-method-fields="email_phone_code" class="credential-field-group space-y-4 hidden">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-white/70 mb-1.5">Login Identifier (Email or Phone) <span class="text-red-400">*</span></label>
+            <input type="text" name="cred_identifier" placeholder="e.g., {{ request.user.email|default:'account@example.com' }}" class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/40">
+          </div>
+
+          <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs leading-relaxed space-y-1">
+            <strong>One-Time Login Code Required:</strong>
+            <p class="text-amber-200/80">This account requires a one-time login code. Contributors should contact the host through the pool discussion immediately before logging in to receive the current verification code.</p>
+          </div>
+        </div>
+
+        <!-- Custom Login Builder -->
+        <div data-method-fields="custom" class="credential-field-group space-y-4 hidden">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-white/70 mb-1.5">Login Method Name <span class="text-red-400">*</span></label>
+            <input type="text" name="custom_method_name" placeholder="e.g., Account ID + PIN" class="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/40">
+          </div>
+
+          <div class="space-y-3 pt-2" id="custom-fields-container">
+            <span class="block text-xs font-bold uppercase tracking-wider text-white/60">Credential Fields</span>
+
+            <div class="flex items-center gap-3">
+              <input type="text" name="custom_key[]" placeholder="e.g., Account ID" class="w-1/2 bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-white/40">
+              <input type="text" name="custom_value[]" placeholder="i.e., 12345678" class="w-1/2 bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-white/40">
+            </div>
+
+            <button type="button" id="add-custom-field-btn" class="px-4 py-2 rounded-xl text-xs font-bold bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-white">
+              + Add another field
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 5. Additional Instructions -->
+      <div class="space-y-2 pt-4 border-t border-white/5">
+        <label for="additional-instructions" class="block text-xs font-bold uppercase tracking-wider text-white/70">
+          Additional Instructions <span class="text-white/40 font-normal">(Optional)</span>
+        </label>
+        <textarea id="additional-instructions" name="instructions" rows="3" 
+                placeholder="e.g., Profile 2, PIN: 1234, do not change language settings..." 
+                class="w-full bg-white/[0.03] border border-white/10 rounded-xl p-4 text-xs text-white placeholder-white/30 focus:outline-none focus:border-white/40 resize-none"></textarea>
+      </div>
+
+      <!-- 6. Security Notice Card -->
+      <div class="p-4 rounded-2xl bg-white/[0.02] border border-white/10 flex items-start gap-3.5">
+        <div class="text-lg shrink-0 pt-0.5">🔐</div>
+        <div class="space-y-1">
+          <h4 class="text-xs font-bold text-white tracking-wide">Your Vault is protected</h4>
+          <p class="text-[11px] text-white/60 leading-relaxed">
+            Vault credentials are securely stored and are only made available to authorized members of this pool. Do not share passwords or other sensitive credentials in the pool discussion.
+          </p>
+        </div>
+      </div>
+
+      <!-- 7. Save Button -->
+      <div>
+        <button type="submit" class="w-full py-4 rounded-2xl font-bold text-xs uppercase tracking-widest text-center transition-all hover:scale-[1.01] bg-white text-black shadow-lg">
+          Save & Publish Pool
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</main>
+
+<script>
+  // Handle dynamic field switching & disable hidden fields so they don't overwrite submissions
+  const methodSelect = document.getElementById('login-method-select');
+
+  function updateVisibleFields() {
+    const selectedValue = methodSelect.value;
+    const allGroups = document.querySelectorAll('.credential-field-group');
+
+    allGroups.forEach(group => {
+      const isTarget = group.getAttribute('data-method-fields') === selectedValue;
+      if (isTarget) {
+        group.classList.remove('hidden');
+        // Enable inputs inside active tab
+        group.querySelectorAll('input').forEach(input => input.disabled = false);
+      } else {
+        group.classList.add('hidden');
+        // Disable inputs inside inactive tabs to prevent empty values or conflicts
+        group.querySelectorAll('input').forEach(input => input.disabled = true);
+      }
+    });
+  }
+
+  methodSelect.addEventListener('change', updateVisibleFields);
+  // Run on initial load
+  updateVisibleFields();
+
+  // Handle password visibility toggling with SVG replacement
+  document.querySelectorAll('.toggle-password').forEach(button => {
+    button.addEventListener('click', function() {
+      const container = this.closest('.relative');
+      const input = container.querySelector('.password-input');
+      const icon = this.querySelector('.svg-icon, .eye-icon');
+
+      if (input.type === 'password') {
+        input.type = 'text';
+        // Swap to Eye Off / Hidden SVG icon
+        this.innerHTML = `<svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>`;
+      } else {
+        input.type = 'password';
+        // Swap back to Eye Open SVG icon
+        this.innerHTML = `<svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`;
+      }
+    });
+  });
+
+  // Handle adding extra custom fields dynamically
+  document.getElementById('add-custom-field-btn').addEventListener('click', function() {
+    const container = document.getElementById('custom-fields-container');
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-3 pt-2';
+    row.innerHTML = `
+      <input type="text" name="custom_key[]" placeholder="e.g., PIN" class="w-1/2 bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-white/40">
+      <input type="text" name="custom_value[]" placeholder="i.e., 4832" class="w-1/2 bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-white/40">
+    `;
+    container.insertBefore(row, this);
+  });
+</script>
+
+{% endblock %}

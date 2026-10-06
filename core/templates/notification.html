@@ -1,0 +1,297 @@
+{% extends 'navbar.html' %}
+
+{% block content %}
+<!-- Hidden CSRF token for AJAX requests -->
+<input type="hidden" id="csrf-token" value="{{ csrf_token }}">
+
+<section id="notifications-section" class="px-4 md:px-8 lg:px-16 py-12 lg:py-20 max-w-4xl mx-auto w-full text-white" style="background: #05080F;">
+  
+  <!-- Page Header -->
+  <div class="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+    <div>
+      <p class="text-sm font-bold tracking-widest uppercase mb-2 text-white/75">Activity Center</p>
+      <h1 class="font-black text-white" style="font-size: clamp(2rem, 3.5vw, 3rem);">Notifications</h1>
+    </div>
+    
+    <!-- Action Control -->
+    <button id="mark-all-btn" class="text-xs font-bold text-white/60 hover:text-white transition-colors flex items-center gap-1.5 py-2 px-3 rounded-xl bg-white/5 border border-white/10 cursor-pointer">
+      <span>Mark all as read</span>
+      &check;
+    </button>
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="flex gap-2 flex-wrap mb-8" id="notification-filters">
+    <button data-filter="all" class="filter-btn px-4 py-2 rounded-full text-xs font-bold bg-white text-black transition-all cursor-pointer">All</button>
+    <button data-filter="unread" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white transition-all cursor-pointer" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+      Unread <span id="unread-badge" class="ml-1 px-1.5 py-0.2 bg-white/20 rounded-full text-[10px]">{{ unread_count }}</span>
+    </button>
+    <button data-filter="payment" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white transition-all cursor-pointer" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">Payment</button>
+    <button data-filter="pool" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white transition-all cursor-pointer" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">Pool</button>
+    <button data-filter="dispute" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white transition-all cursor-pointer" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">Dispute</button>
+    <button data-filter="rating" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white transition-all cursor-pointer" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">Rating</button>
+    <button data-filter="reminder" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white transition-all cursor-pointer" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">Reminder</button>
+    <button data-filter="security" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white transition-all cursor-pointer" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">Security</button>
+    <button data-filter="system" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white transition-all cursor-pointer" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">System</button>
+  </div>
+
+  <!-- Notifications List Container -->
+  <div id="notifications-list" class="space-y-3">
+    {% for notification in notifications %}
+      <div class="notification-card rounded-[1.5rem] p-5 md:p-6 transition-all relative overflow-hidden group flex items-start gap-4 {% if notification.is_read %}opacity-75 hover:opacity-100{% endif %}"
+           data-id="{{ notification.pk }}"
+           data-type="{{ notification.type }}"
+           data-is-read="{{ notification.is_read|lower }}"
+           data-url="{{ notification.url|default:'' }}"
+           data-created-at="{{ notification.created_at|date:'c' }}"
+           style="background: {% if notification.is_read %}rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08){% else %}rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15){% endif %}; cursor: pointer;">
+        
+        <!-- Unread Indicator (Conditionally rendered) -->
+        <div class="unread-indicator absolute left-0 top-0 bottom-0 w-1 bg-emerald-400 {% if notification.is_read %}hidden{% endif %}"></div>
+        
+        <!-- Icon Indicator -->
+        <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/80 shrink-0 font-bold icon-box">
+          <!-- Resolved dynamically via JS -->
+        </div>
+
+        <div class="flex-1 min-w-0">
+          <div class="flex justify-between items-start gap-2 mb-1">
+            <h3 class="text-sm font-bold text-white tracking-wide">{{ notification.title }}</h3>
+            <span class="relative-time text-[10px] text-white/40 whitespace-nowrap" data-timestamp="{{ notification.created_at|date:'c' }}"></span>
+          </div>
+          <p class="text-xs text-white/70 leading-relaxed mb-2">
+            {{ notification.description }}
+          </p>
+          <div class="flex items-center gap-3">
+            <span class="type-dot inline-block w-2 h-2 rounded-full bg-emerald-400 {% if notification.is_read %}hidden{% endif %}"></span>
+            <span class="text-[10px] uppercase font-bold tracking-wider text-white/60">{{ notification.get_type_display }}</span>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div id="no-db-notifications" class="text-center py-16 bg-white/5 rounded-[1.5rem] border border-white/10">
+        <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-4 text-xl">🔔</div>
+        <h3 class="text-base font-bold text-white mb-1">No notifications yet</h3>
+        <p class="text-xs text-white/50">You're all caught up. New notifications will appear here.</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Dynamic Filter Empty State (Hidden by default) -->
+  <div id="filter-empty-state" class="hidden text-center py-16 bg-white/5 rounded-[1.5rem] border border-white/10 mt-3">
+    <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-4 text-xl">🔍</div>
+    <h3 id="empty-state-title" class="text-base font-bold text-white mb-1">No matching notifications</h3>
+    <p class="text-xs text-white/50">There are no notifications matching your current filter selection.</p>
+  </div>
+
+  <!-- Footer Pagination Hint -->
+  <div class="text-center mt-12">
+    <p class="text-xs text-white/40">You've reached the end of your recent notifications.</p>
+  </div>
+
+</section>
+
+<!-- Frontend Logic Script -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const typeIcons = {
+        payment: '₦',
+        pool: '👥',
+        dispute: '⚠',
+        rating: '★',
+        reminder: '🔔',
+        security: '🛡',
+        system: '⚙'
+    };
+
+    const cards = document.querySelectorAll('.notification-card');
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const markAllBtn = document.getElementById('mark-all-btn');
+    const unreadBadge = document.getElementById('unread-badge');
+    const filterEmptyState = document.getElementById('filter-empty-state');
+    const emptyStateTitle = document.getElementById('empty-state-title');
+    const csrfToken = document.getElementById('csrf-token').value;
+
+    let currentFilter = 'all';
+
+    // 1. Initialize Icons & Relative Timestamps
+    function formatRelativeTime(isoString) {
+        const date = new Date(isoString);
+        const now = new Date();
+        const secondsAgo = Math.floor((now - date) / 1000);
+
+        if (secondsAgo < 60) return `${Math.max(1, secondsAgo)}s ago`;
+        const minutesAgo = Math.floor(secondsAgo / 60);
+        if (minutesAgo < 60) return `${minutesAgo}m ago`;
+        const hoursAgo = Math.floor(minutesAgo / 60);
+        if (hoursAgo < 24) return `${hoursAgo}h ago`;
+        const daysAgo = Math.floor(hoursAgo / 24);
+        if (daysAgo === 1) return 'Yesterday';
+        if (daysAgo < 30) return `${daysAgo} days ago`;
+        return date.toLocaleDateString();
+    }
+
+    cards.forEach(card => {
+        const type = card.getAttribute('data-type');
+        const iconBox = card.querySelector('.icon-box');
+        if (iconBox && typeIcons[type]) {
+            iconBox.textContent = typeIcons[type];
+        }
+
+        const timeSpan = card.querySelector('.relative-time');
+        const isoTime = card.getAttribute('data-created-at');
+        if (timeSpan && isoTime) {
+            timeSpan.textContent = formatRelativeTime(isoTime);
+        }
+    });
+
+    // 2. Filter Functionality
+    function applyFilter(filter) {
+        currentFilter = filter;
+        let visibleCount = 0;
+
+        filterButtons.forEach(btn => {
+            if (btn.getAttribute('data-filter') === filter) {
+                btn.className = 'filter-btn px-4 py-2 rounded-full text-xs font-bold bg-white text-black transition-all cursor-pointer';
+            } else {
+                btn.className = 'filter-btn px-4 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white transition-all cursor-pointer';
+                btn.style.background = 'rgba(255,255,255,0.05)';
+                btn.style.border = '1px solid rgba(255,255,255,0.1)';
+            }
+        });
+
+        cards.forEach(card => {
+            const isRead = card.getAttribute('data-is-read') === 'true';
+            const type = card.getAttribute('data-type');
+
+            let matches = false;
+            if (filter === 'all') {
+                matches = true;
+            } else if (filter === 'unread') {
+                matches = !isRead;
+            } else {
+                matches = type === filter;
+            }
+
+            if (matches) {
+                card.style.display = '';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        if (visibleCount === 0 && cards.length > 0) {
+            filterEmptyState.classList.remove('hidden');
+            emptyStateTitle.textContent = filter === 'unread' ? 'No unread notifications' : `No ${filter} notifications`;
+        } else {
+            filterEmptyState.classList.add('hidden');
+        }
+    }
+
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            applyFilter(btn.getAttribute('data-filter'));
+        });
+    });
+
+    // Update Unread Counter Badge
+    function updateUnreadCount() {
+        let unreadCount = 0;
+        cards.forEach(card => {
+            if (card.getAttribute('data-is-read') === 'false') {
+                unreadCount++;
+            }
+        });
+        if (unreadBadge) {
+            unreadBadge.textContent = unreadCount;
+        }
+    }
+
+    // 3. Notification Click / AJAX Read Handler & Navigation
+    cards.forEach(card => {
+        card.addEventListener('click', () => {
+            const pk = card.getAttribute('data-id');
+            const isRead = card.getAttribute('data-is-read') === 'true';
+            const targetUrl = card.getAttribute('data-url');
+
+            const markAsReadAndNavigate = () => {
+                if (targetUrl && targetUrl.trim() !== '') {
+                    window.location.href = targetUrl;
+                }
+            };
+
+            if (!isRead) {
+                fetch(`/notifications/${pk}/read/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        card.setAttribute('data-is-read', 'true');
+                        card.classList.add('opacity-75', 'hover:opacity-100');
+                        card.style.background = 'rgba(255,255,255,0.02)';
+                        card.style.border = '1px solid rgba(255,255,255,0.08)';
+                        
+                        const unreadIndicator = card.querySelector('.unread-indicator');
+                        const typeDot = card.querySelector('.type-dot');
+                        if (unreadIndicator) unreadIndicator.classList.add('hidden');
+                        if (typeDot) typeDot.classList.add('hidden');
+
+                        updateUnreadCount();
+                        if (currentFilter === 'unread') {
+                            applyFilter('unread');
+                        }
+                    }
+                    markAsReadAndNavigate();
+                })
+                .catch(err => {
+                    console.error('Error marking notification read:', err);
+                    markAsReadAndNavigate();
+                });
+            } else {
+                markAsReadAndNavigate();
+            }
+        });
+    });
+
+    // 4. Mark All As Read Handler
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', () => {
+            fetch('/notifications/mark-all-read/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    cards.forEach(card => {
+                        card.setAttribute('data-is-read', 'true');
+                        card.classList.add('opacity-75', 'hover:opacity-100');
+                        card.style.background = 'rgba(255,255,255,0.02)';
+                        card.style.border = '1px solid rgba(255,255,255,0.08)';
+
+                        const unreadIndicator = card.querySelector('.unread-indicator');
+                        const typeDot = card.querySelector('.type-dot');
+                        if (unreadIndicator) unreadIndicator.classList.add('hidden');
+                        if (typeDot) typeDot.classList.add('hidden');
+                    });
+                    updateUnreadCount();
+                    if (currentFilter === 'unread') {
+                        applyFilter('unread');
+                    }
+                }
+            })
+            .catch(err => console.error('Error marking all notifications read:', err));
+        });
+    }
+});
+</script>
+{% endblock %}

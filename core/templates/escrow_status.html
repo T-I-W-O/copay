@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Escrow status</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+    h1 { font-size: 1.4rem; }
+    .card { border: 1px solid #ddd; border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    .status { font-size: 1.6rem; font-weight: 700; }
+    .error { background: #fdecea; border-color: #f5c2c0; color: #8a1c14; }
+    .muted { color: #666; font-size: .9rem; }
+    input[type=text] { width: 100%; padding: .55rem; box-sizing: border-box; margin: .4rem 0 .6rem; }
+    button { padding: .55rem 1rem; cursor: pointer; }
+    pre { background: #f6f6f6; padding: .75rem; border-radius: 8px; overflow-x: auto; font-size: .85rem; }
+  </style>
+</head>
+<body>
+  <h1>Escrow status</h1>
+  <p class="muted">
+    {{ member.pool.service.name }} &middot; {{ member.user.username }}
+  </p>
+
+  {% if error %}
+    <div class="card error">{{ error }}</div>
+  {% endif %}
+
+  {% if status %}
+    <div class="card">
+      <div class="muted">Current status</div>
+      <div class="status">{{ status }}</div>
+    </div>
+  {% elif raw_json and not error %}
+    <div class="card">
+      Got a response from PayScrow, but no status field was recognised.
+      See the raw response below.
+    </div>
+  {% endif %}
+
+  <div class="card">
+    <form method="get">
+      <label for="transaction_number">PayScrow transaction number</label>
+      <input type="text" id="transaction_number" name="transaction_number"
+             value="{{ transaction_number }}" placeholder="Paste it here if the auto one fails">
+      {% if used_stored_number %}
+        <div class="muted">Using the number saved with this payment.</div>
+      {% endif %}
+      <button type="submit">Check status</button>
+    </form>
+  </div>
+
+  {% if raw_json %}
+    <div class="card">
+      <div class="muted">PayScrow response (HTTP {{ http_status }})</div>
+      <pre>{{ raw_json }}</pre>
+    </div>
+  {% endif %}
+</body>
+</html>

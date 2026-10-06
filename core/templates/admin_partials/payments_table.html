@@ -1,0 +1,145 @@
+<!-- CoPay Admin - Payment History Ledger -->
+<div class="rounded-[2rem] p-6 md:p-8 space-y-6 shadow-2xl" 
+     style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-white/10">
+    <div>
+      <h3 class="text-base font-bold text-white">Global Payment History</h3>
+      <span class="text-xs text-white/40">Complete transaction ledger across all users and pools</span>
+    </div>
+    <div class="w-full sm:w-auto">
+      <input type="text" id="payment-search-input" placeholder="Search user, pool, or payment ID..." 
+             class="w-full sm:w-64 bg-white/[0.03] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/40">
+    </div>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="border-b border-white/10 text-[10px] uppercase tracking-wider text-white/45">
+          <th class="pb-3 font-semibold">ID</th>
+          <th class="pb-3 font-semibold">User</th>
+          <th class="pb-3 font-semibold">Pool</th>
+          <th class="pb-3 font-semibold">Type</th>
+          <th class="pb-3 font-semibold">Amount</th>
+          <th class="pb-3 font-semibold text-right">Status</th>
+        </tr>
+      </thead>
+      <tbody id="payments-table-body" class="divide-y divide-white/5 text-xs font-medium">
+        <!-- Dynamically injected via JavaScript -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Payments Pagination Controls -->
+  <div id="payments-pagination-container" class="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-white/10 text-xs text-white/50 hidden">
+    <span id="payments-pagination-info">Showing 0-0 of 0 transactions</span>
+    <div class="flex items-center gap-2 mt-2 sm:mt-0">
+      <button id="payments-prev-btn" onclick="changePaymentPage(-1)" class="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:cursor-not-allowed transition-all">Previous</button>
+      <span id="payments-page-indicator" class="px-3 py-1.5 font-mono text-white">1 / 1</span>
+      <button id="payments-next-btn" onclick="changePaymentPage(1)" class="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:cursor-not-allowed transition-all">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript Component for Payments Search & Pagination -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const allPayments = JSON.parse('{{ payments_json|safe }}');
+    let filteredPayments = [...allPayments];
+    let currentPaymentPage = 1;
+    const rowsPerPaymentPage = 10;
+
+    const tableBody = document.getElementById("payments-table-body");
+    const searchInput = document.getElementById("payment-search-input");
+    const paginationContainer = document.getElementById("payments-pagination-container");
+    const paginationInfo = document.getElementById("payments-pagination-info");
+    const pageIndicator = document.getElementById("payments-page-indicator");
+    const prevBtn = document.getElementById("payments-prev-btn");
+    const nextBtn = document.getElementById("payments-next-btn");
+
+    function renderPaymentsTable() {
+      tableBody.innerHTML = "";
+
+      if (filteredPayments.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-white/40">No payment records found matching your search.</td></tr>`;
+        paginationContainer.classList.add("hidden");
+        return;
+      }
+
+      const totalPages = Math.ceil(filteredPayments.length / rowsPerPaymentPage);
+      if (currentPaymentPage > totalPages) currentPaymentPage = 1;
+
+      const start = (currentPaymentPage - 1) * rowsPerPaymentPage;
+      const end = start + rowsPerPaymentPage;
+      const paginatedPayments = filteredPayments.slice(start, end);
+
+      paginatedPayments.forEach(tx => {
+        // Type Badge Styling
+        let typeBadge = "";
+        const kindLower = tx.kindValue.toLowerCase();
+        if (kindLower.includes("earning")) {
+          typeBadge = `<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20">${tx.kind}</span>`;
+        } else if (kindLower.includes("refund")) {
+          typeBadge = `<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20">${tx.kind}</span>`;
+        } else {
+          typeBadge = `<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20">${tx.kind}</span>`;
+        }
+
+        // Amount Formatting with Sign & Currency
+        const isNegative = kindLower.includes("refund");
+        const formattedAmount = `${isNegative ? '-' : '+'}₦${Math.abs(tx.amount).toLocaleString('en-NG', { minimumFractionDigits: 2 })}`;
+
+        const row = document.createElement("tr");
+        row.className = "hover:bg-white/[0.02] transition-colors";
+        row.innerHTML = `
+          <td class="py-4 font-mono text-white/60">#${tx.id}</td>
+          <td class="py-4 text-white font-bold">${tx.username}</td>
+          <td class="py-4 text-white/80">${tx.pool}</td>
+          <td class="py-4">${typeBadge}</td>
+          <td class="py-4 text-white font-mono font-bold">${formattedAmount}</td>
+          <td class="py-4 text-right">
+            <span class="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">${tx.status}</span>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      // Pagination Display Handler
+      if (filteredPayments.length > rowsPerPaymentPage) {
+        paginationContainer.classList.remove("hidden");
+        paginationInfo.textContent = `Showing ${start + 1}-${Math.min(end, filteredPayments.length)} of ${filteredPayments.length} transactions`;
+        pageIndicator.textContent = `${currentPaymentPage} / ${totalPages}`;
+        prevBtn.disabled = currentPaymentPage === 1;
+        nextBtn.disabled = currentPaymentPage === totalPages;
+      } else {
+        paginationContainer.classList.add("hidden");
+      }
+    }
+
+    // Live Search Filter for User, Pool Service Name, or Payment ID
+    searchInput.addEventListener("input", function (e) {
+      const query = e.target.value.toLowerCase().trim();
+      filteredPayments = allPayments.filter(tx => 
+        tx.username.toLowerCase().includes(query) || 
+        tx.pool.toLowerCase().includes(query) || 
+        String(tx.id).toLowerCase().includes(query) ||
+        tx.kind.toLowerCase().includes(query)
+      );
+      currentPaymentPage = 1;
+      renderPaymentsTable();
+    });
+
+    // Global Pagination Action Trigger
+    window.changePaymentPage = function (direction) {
+      const totalPages = Math.ceil(filteredPayments.length / rowsPerPaymentPage);
+      currentPaymentPage += direction;
+      if (currentPaymentPage < 1) currentPaymentPage = 1;
+      if (currentPaymentPage > totalPages) currentPaymentPage = totalPages;
+      renderPaymentsTable();
+    };
+
+    // Initial Render
+    renderPaymentsTable();
+  });
+</script>

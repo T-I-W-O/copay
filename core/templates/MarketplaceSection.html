@@ -1,0 +1,219 @@
+<!-- Marketplace Section Component -->
+<section id="marketplace-section" class="px-4 md:px-8 lg:px-16 py-16 lg:py-24 max-w-7xl mx-auto w-full">
+  <!-- Header with Category Filters & Go to Marketplace link -->
+  <div class="ms-header flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+    <div>
+      <p class="text-sm font-bold tracking-widest uppercase mb-3 text-white/75">Marketplace</p>
+      <div class="flex flex-wrap items-baseline gap-4">
+        <h2 class="font-black text-white" style="font-size: clamp(2.2rem, 4vw, 3.5rem);">Public Pools</h2>
+        <a href="/marketplace/" class="text-sm font-bold text-white/60 hover:text-white transition-colors flex items-center gap-1">
+          Go to Marketplace &rarr;
+        </a>
+      </div>
+    </div>
+    
+    <!-- Functional Category Filters -->
+    <div class="flex gap-2 flex-wrap" id="marketplace-filters">
+      <button data-category="all" class="filter-btn px-4 py-2 rounded-full text-xs font-bold bg-white text-black transition-all">All</button>
+      <button data-category="video" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">Video</button>
+      <button data-category="music" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">Music</button>
+      <button data-category="aitool" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">AI Tools</button>
+      <button data-category="software" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">Software</button>
+      <button data-category="gaming" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">Gaming</button>
+      <button data-category="other" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">Other</button>
+    </div>
+  </div>
+
+  <!-- Marketplace Pools Grid -->
+  {% if market_pools %}
+    <div id="pools-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+      {% for pool in market_pools %}
+        {% with contributors_count=pool.contributor_count max_seats=pool.number_of_users %}
+        {% with remaining_seats=max_seats|add:"-"|add:contributors_count %}
+        
+          <a href="/market/{{ pool.id }}/" 
+             data-category="{{ pool.service.category }}"
+             class="ms-card rounded-[1.5rem] p-6 flex flex-col justify-between transition-all hover:border-white/40 block group relative overflow-hidden" 
+             style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); text-decoration: none;">
+            
+            <div>
+              <!-- Top Header info -->
+              <div class="flex justify-between items-center mb-4 gap-2">
+                <div class="flex items-center gap-2">
+                  {% if pool.service.image %}
+                    <img src="{{ pool.service.image.url }}" alt="{{ pool.service.name }}" class="w-6 h-6 rounded-md object-cover">
+                  {% else %}
+                    <div class="w-6 h-6 rounded-md bg-white/10 text-white font-bold text-xs flex items-center justify-center border border-white/20">
+                      {{ pool.service.name|slice:":1"|upper }}
+                    </div>
+                  {% endif %}
+                  <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/10 text-white border border-white/20">
+                    {{ pool.service.name }}
+                  </span>
+                </div>
+                
+                {% if contributors_count >= max_seats %}
+                  <span class="text-[10px] uppercase font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full">Full</span>
+                {% else %}
+                  <span class="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">Open</span>
+                {% endif %}
+              </div>
+
+              <!-- Pool Details & Host Display Logic -->
+              <h3 class="text-lg font-bold text-white mb-1 group-hover:text-white/90 transition-colors">{{ pool.service.name }} Shared Pool</h3>
+
+              {% if request.user.is_authenticated and pool.host == request.user %}
+              <p class="text-xs mb-4 text-emerald/40">Host:You</p>
+              {% else %}
+              <p class="text-xs mb-4 text-emerald/40">Host:@{{ pool.host.username }}</p>
+              {% endif %}
+                           
+              
+              <!-- Occupancy Indicator & Progress Bar -->
+              <div class="mb-6 space-y-2">
+                <div class="flex justify-between items-center text-xs text-white/80 font-semibold">
+                  <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-white/70"></span> {{ contributors_count }}/{{ max_seats }} slots filled</span>
+                  <span class="text-white/40 text-[11px]">{{ remaining_seats }} left</span>
+                </div>
+                <div class="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                  <div class="bg-white h-full rounded-full transition-all duration-500" 
+                       style="width: {% widthratio contributors_count max_seats 100 %}%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <!-- Pricing info -->
+              <div class="flex justify-between items-end mb-4 pt-2 border-t border-white/5">
+                <div>
+                  <span class="text-[10px] uppercase tracking-wider block text-white/40">Price / Seat</span>
+                  <span class="text-xl font-black text-white">₦{{ pool.amount_per_person|floatformat:2 }} <span class="text-xs font-normal text-white/40">/mo</span></span>
+                </div>
+              </div>
+              
+              <!-- Dynamic Button Logic -->
+              {% if request.user.is_authenticated and pool.host == request.user or pool.user_is_member %}
+                <!-- Host or Existing Member -->
+                <span class="w-full py-2.5 rounded-xl font-bold text-xs text-center block transition-all group-hover:scale-[1.02] bg-white/10 text-white border border-white/20">
+                  See Pool
+                </span>
+              {% elif contributors_count >= max_seats %}
+                <!-- Pool Full -->
+                <span class="w-full py-2.5 rounded-xl font-bold text-xs text-center block bg-white/10 text-white/40 cursor-not-allowed">
+                  Pool Full
+                </span>
+              {% else %}
+                <!-- Open to Join -->
+                <span class="w-full py-2.5 rounded-xl font-bold text-xs text-center block transition-all group-hover:scale-[1.02] bg-white text-black">
+                  Join Pool
+                </span>
+              {% endif %}
+              
+              <p class="text-[10px] text-white/40 px-2 leading-relaxed mt-2">
+                Account sharing may violate service terms. Use at your own risk. Escrow applied.
+              </p>
+            </div>
+          </a>
+
+        {% endwith %}
+        {% endwith %}
+      {% endfor %}
+    </div>
+
+    <!-- Client-side Filter Empty State (Hidden by default) -->
+    <div id="filter-empty-state" class="hidden text-center py-20 bg-white/[0.02] border border-white/10 rounded-[1.5rem]">
+      <p class="text-white/60 text-sm font-semibold">No pools match your search or filter.</p>
+    </div>
+
+  {% else %}
+    <!-- Database Empty State -->
+    <div class="text-center py-20 bg-white/[0.02] border border-white/10 rounded-[1.5rem]">
+      <p class="text-white/60 text-sm font-semibold">Marketplace is empty for now.</p>
+    </div>
+  {% endif %}
+</section>
+
+<!-- GSAP Animation & Filter Script -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const section = document.getElementById("marketplace-section");
+    if (!section) return;
+
+    // Header reveal animation
+    gsap.from(section.querySelector('.ms-header'), {
+      opacity: 0,
+      y: 50,
+      duration: 1,
+      ease: 'power4.out',
+      scrollTrigger: {
+        trigger: section,
+        start: 'top 80%'
+      }
+    });
+
+    // Cards staggered reveal animation
+    const cards = section.querySelectorAll('.ms-card');
+    if (cards.length > 0) {
+      gsap.from(cards, {
+        opacity: 0,
+        y: 80,
+        scale: 0.95,
+        duration: 0.8,
+        stagger: {
+          amount: 0.7,
+          from: 'start'
+        },
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top 75%'
+        },
+        onComplete: () => {
+          gsap.set(cards, { clearProps: "transform,opacity" });
+        }
+      });
+    }
+
+    // Category filter functionality with Empty State toggle
+    const filterButtons = section.querySelectorAll('.filter-btn');
+    const filterEmptyState = document.getElementById('filter-empty-state');
+
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterButtons.forEach(b => {
+          b.classList.remove('bg-white', 'text-black', 'font-bold');
+          b.classList.add('text-white/60', 'font-semibold');
+          b.style.background = 'rgba(255,255,255,0.05)';
+          b.style.border = '1px solid rgba(255,255,255,0.1)';
+        });
+        
+        btn.classList.remove('text-white/60', 'font-semibold');
+        btn.classList.add('bg-white', 'text-black', 'font-bold');
+        btn.style.background = '#ffffff';
+        btn.style.border = 'none';
+
+        const selectedCategory = btn.getAttribute('data-category');
+        let visibleCount = 0;
+        
+        cards.forEach(card => {
+          const cardCategory = card.getAttribute('data-category');
+          if (selectedCategory === 'all' || cardCategory === selectedCategory) {
+            card.style.display = 'flex';
+            visibleCount++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        // Show/hide filter empty message based on visible elements
+        if (filterEmptyState) {
+          if (visibleCount === 0) {
+            filterEmptyState.classList.remove('hidden');
+          } else {
+            filterEmptyState.classList.add('hidden');
+          }
+        }
+      });
+    });
+  });
+</script>

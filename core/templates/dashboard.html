@@ -1,0 +1,156 @@
+{% extends 'navbar.html' %}
+
+{% block content %}
+<!-- CoPay User Dashboard Component -->
+<div id="user-dashboard" class="px-4 md:px-8 lg:px-16 py-12 lg:py-20 max-w-7xl mx-auto w-full text-white" style="background: #05080F;">
+  
+  <!-- Dashboard Header -->
+  <div class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div>
+      <p class="text-sm font-bold tracking-widest uppercase mb-2 text-white/75">Account Dashboard</p>
+      <h1 class="font-black text-white" style="font-size: clamp(2rem, 3.5vw, 3rem);">Financial & Profile Overview</h1>
+    </div>
+    
+<div class="flex items-center gap-2">
+  <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Account Active
+  </span>
+</div>
+</div>
+
+<div class="space-y-8">
+
+  
+  </div>
+
+
+    <!-- Grid Section for Details -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- Left Column: Profile & Account Details (2 Columns span on desktop) -->
+      <div class="lg:col-span-2 space-y-8">
+        
+       <!-- 4. Profile Card -->
+<div class="rounded-[1.5rem] p-6 md:p-8" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+  <div class="flex justify-between items-center mb-6">
+    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-white"></span> Personal Profile
+    </h3>
+    <button id="btn-toggle-edit" onclick="toggleEditForm()" class="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white/5 hover:bg-white/10 border border-white/10 text-white">
+      Edit Profile
+    </button>
+  </div>
+
+{% include 'profile.html' %}
+</div>
+
+{% include 'edit_bank.html' %}
+       
+        <!-- 2. Recent Payment / Transaction History -->
+<div class="rounded-[1.5rem] p-6 md:p-8" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+  <div class="flex justify-between items-center mb-6">
+    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-white"></span> Recent History
+    </h3>
+    <a href="{% url 'history' %}" class="text-xs font-bold text-white/60 hover:text-white transition-colors flex items-center gap-1">
+      View all history &rarr;
+    </a>
+  </div>
+
+  <!-- History Table Wrapper -->
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="border-b border-white/10 text-[10px] uppercase tracking-wider text-white/40">
+          <th class="pb-3 font-semibold">Date</th>
+          <th class="pb-3 font-semibold">Type</th>
+          <th class="pb-3 font-semibold">Pool / Service</th>
+          <th class="pb-3 font-semibold">Amount</th>
+          <th class="pb-3 font-semibold text-right">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/5 text-xs font-medium">
+        {% for payment in recent_payments %}
+          <tr>
+            <!-- Date -->
+            <td class="py-4 text-white/80">{{ payment.created_at|date:"M d, Y" }}</td>
+            
+            <!-- Type -->
+            <td class="py-4">
+              <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold 
+                {% if payment.kind == 'earning' %}text-sky-400 bg-sky-500/10 border border-sky-500/20
+                {% else %}text-purple-400 bg-purple-500/10 border border-purple-500/20{% endif %}">
+                {{ payment.get_kind_display }}
+              </span>
+            </td>
+
+            <!-- Pool / Service -->
+            <td class="py-4 text-white/90 font-medium">
+              {{ payment.pool.name }} <!-- Change '.name' to whatever field represents the pool/service title in your Pool model -->
+            </td>
+
+            <!-- Amount (with dynamic + or - styling if needed) -->
+            <td class="py-4 text-white font-bold">
+              {% if payment.kind == 'earning' %}+{% else %}-{% endif %}₦{{ payment.amount|floatformat:2 }}
+            </td>
+
+            <!-- Status (Assuming completed since record exists, or mapped to fields if you have a status attribute) -->
+            <td class="py-4 text-right">
+              <span class="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                Completed
+              </span>
+            </td>
+          </tr>
+        {% empty %}
+          <!-- Empty State Message -->
+          <tr>
+            <td colspan="5" class="py-8 text-center text-white/40 text-xs">
+              History is empty. No transactions found.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+      </div>
+
+      <!-- Right Column: Reputation & Minimal Security -->
+      <div class="space-y-8">
+        
+        <!-- 3. Reputation Card -->
+        <div class="rounded-[1.5rem] p-6 md:p-8" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold text-white">Trust & Reputation</h3>
+
+            <span class="text-sm font-bold text-white">⭐ {{ host_reputation.rating }} <span class="text-[10px] text-white/40 font-normal">({{ host_reputation.total_ratings }})</span></span>
+          </div>
+
+          <div class="space-y-4">
+            <div class="flex justify-between items-center text-xs pb-3 border-b border-white/5">
+              <span class="text-white/60">Successful Transaction Rate</span>
+              <span class="font-bold text-emerald-400">{{ host_reputation.success_rate }}%</span>
+            </div>
+            <div class="flex justify-between items-center text-xs pb-3 border-b border-white/5">
+              <span class="text-white/60">Successful Pools</span>
+              <span class="font-bold text-white">{{ host_reputation.successful_pools }}</span>
+            </div>
+            <div class="flex justify-between items-center text-xs pb-3 border-b border-white/5">
+              <span class="text-white/60">Resolved Disputes</span>
+              <span class="font-bold text-white">{{ host_reputation.resolved_disputes }}</span>
+            </div>
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-white/60">Unresolved Disputes</span>
+              <span class="font-bold {% if host_reputation.unresolved_disputes > 0 %}text-amber-400{% else %}text-emerald-400{% endif %}">{{ host_reputation.unresolved_disputes }}</span>
+            </div>
+
+          </div>
+        </div>
+        {% include 'edit_password.html' %}
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}

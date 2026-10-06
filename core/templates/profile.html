@@ -1,0 +1,176 @@
+<div class="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-md shadow-xl relative overflow-hidden">
+  <!-- Profile Display View -->
+  <div id="profile-display-view" class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+    <!-- Profile Picture Fallback (Initials) -->
+    <div class="w-20 h-20 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-2xl font-black text-white shrink-0 shadow-inner">
+      {{ request.user.username|slice:":2"|upper }}
+    </div>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+      <div>
+        <span class="text-[10px] uppercase tracking-wider text-white/40 block">Email</span>
+        <span id="display-email" class="text-sm font-semibold text-white">{{ request.user.email }}</span>
+      </div>
+      <div>
+        <span class="text-[10px] uppercase tracking-wider text-white/40 block">Username</span>
+        <span id="display-username" class="text-sm font-semibold text-white">@{{ request.user.username }}</span>
+      </div>
+      <div>
+        <span class="text-[10px] uppercase tracking-wider text-white/40 block">Phone Number</span>
+        <span id="display-phone" class="text-sm font-semibold text-white">{{ profile.phone_number|default:"Not Provided" }}</span>
+      </div>
+      <div>
+        <span class="text-[10px] uppercase tracking-wider text-white/40 block">WhatsApp Number</span>
+        <span id="display-whatsapp" class="text-sm font-semibold text-white">{{ profile.whatsapp_number|default:"Not Provided" }}</span>
+      </div>
+    </div>
+
+
+  </div>
+
+  <!-- Hidden Edit Form View -->
+  <div id="profile-edit-form-container" class="hidden mt-6 pt-6 border-t border-white/10">
+    <h3 class="text-white text-sm font-bold mb-4">Edit Your Profile</h3>
+    
+    <!-- Error/Success Banner -->
+    <div id="form-message" class="hidden mb-4 p-3 rounded-xl text-xs font-medium"></div>
+
+    <form id="ajax-profile-form" onsubmit="submitProfileForm(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {% csrf_token %}
+      <div>
+        <label class="text-[10px] uppercase tracking-wider text-white/40 block mb-1">Email</label>
+        <input type="email" id="edit-email" name="email" value="{{ request.user.email }}" required
+          class="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+      </div>
+      <div>
+        <label class="text-[10px] uppercase tracking-wider text-white/40 block mb-1">Username</label>
+        <input type="text" id="edit-username" name="username" value="{{ request.user.username }}" required
+          class="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+      </div>
+      <div>
+        <label class="text-[10px] uppercase tracking-wider text-white/40 block mb-1">Phone Number (e.g. 2348012345678)</label>
+        <input type="text" id="edit-phone" name="phone_number" value="{{ profile.phone_number }}" placeholder="234..." required
+          class="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+      </div>
+      <div>
+        <label class="text-[10px] uppercase tracking-wider text-white/40 block mb-1">WhatsApp Number (e.g. 2348012345678)</label>
+        <input type="text" id="edit-whatsapp" name="whatsapp_number" value="{{ profile.whatsapp_number }}" placeholder="234..."
+          class="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+      </div>
+
+      <div class="sm:col-span-2 flex justify-end gap-3 mt-2">
+        <button type="button" onclick="toggleEditForm()" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl transition-all">
+          Cancel
+        </button>
+        <button type="submit" id="btn-save" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all shadow-lg">
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function toggleEditForm() {
+    const editContainer = document.getElementById('profile-edit-form-container');
+    const toggleBtn = document.getElementById('btn-toggle-edit');
+    const msgBox = document.getElementById('form-message');
+    
+    msgBox.classList.add('hidden');
+    editContainer.classList.toggle('hidden');
+    toggleBtn.classList.toggle('hidden');
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function submitProfileForm(event) {
+    event.preventDefault();
+    
+    const phone = document.getElementById('edit-phone').value.trim();
+    const whatsapp = document.getElementById('edit-whatsapp').value.trim();
+    const msgBox = document.getElementById('form-message');
+    const saveBtn = document.getElementById('btn-save');
+
+    // Validation Regex: must start with '234' followed by exactly 10 digits (Total 13 digits)
+    const phoneRegex = /^234\d{10}$/;
+
+    if (!phoneRegex.test(phone)) {
+      showMsg('Phone number must start with 234 and be followed by 10 digits (e.g., 2348012345678).', 'error');
+      return;
+    }
+
+    if (whatsapp && !phoneRegex.test(whatsapp)) {
+      showMsg('WhatsApp number must start with 234 and be followed by 10 digits.', 'error');
+      return;
+    }
+
+    const formData = {
+      email: document.getElementById('edit-email').value.trim(),
+      username: document.getElementById('edit-username').value.trim(),
+      phone_number: phone,
+      whatsapp_number: whatsapp
+    };
+
+    saveBtn.disabled = true;
+    saveBtn.innerText = 'Saving...';
+
+    fetch("{% url 'update_profile_ajax' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify(formData)
+    })
+    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+    .then(res => {
+      saveBtn.disabled = false;
+      saveBtn.innerText = 'Save Changes';
+
+      if (res.status === 200) {
+        // Successfully updated UI fields
+        document.getElementById('display-email').innerText = res.body.email;
+        document.getElementById('display-username').innerText = '@' + res.body.username;
+        document.getElementById('display-phone').innerText = res.body.phone_number;
+        document.getElementById('display-whatsapp').innerText = res.body.whatsapp_number || 'Not Provided';
+        
+        showMsg(res.body.message, 'success');
+        setTimeout(() => {
+          toggleEditForm();
+        }, 1500);
+      } else {
+        showMsg(res.body.error || 'An error occurred.', 'error');
+      }
+    })
+    .catch(err => {
+      saveBtn.disabled = false;
+      saveBtn.innerText = 'Save Changes';
+      showMsg('Network error. Please try again.', 'error');
+      console.error(err);
+    });
+  }
+
+  function showMsg(text, type) {
+    const msgBox = document.getElementById('form-message');
+    msgBox.innerText = text;
+    msgBox.classList.remove('hidden', 'bg-red-500/20', 'text-red-300', 'bg-emerald-500/20', 'text-emerald-300');
+    if (type === 'error') {
+      msgBox.classList.add('bg-red-500/20', 'text-red-300');
+    } else {
+      msgBox.classList.add('bg-emerald-500/20', 'text-emerald-300');
+    }
+  }
+</script>

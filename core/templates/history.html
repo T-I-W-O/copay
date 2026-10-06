@@ -1,0 +1,171 @@
+{% extends 'navbar.html' %}
+
+{% block content %}
+<!-- CoPay Full Payment History Page with JS Search, Filter, and Pagination -->
+<main class="min-h-screen text-white pt-24 pb-24" style="background: #05080F;">
+  <div class="px-4 md:px-8 lg:px-16 max-w-6xl mx-auto w-full space-y-8">
+    
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="space-y-2">
+        <p class="text-xs font-bold tracking-widest uppercase text-white/60">Financial Records</p>
+        <h1 class="font-black text-white text-3xl md:text-4xl">Payment & Transaction History</h1>
+        <p class="text-xs text-white/50 max-w-xl">Complete log of all your subscription contributions, pool earnings, and escrow disbursements.</p>
+      </div>
+
+      <!-- Quick Action Filters (JS Powered) -->
+      <div class="flex items-center gap-2">
+        <button onclick="filterTable('all')" id="filter-btn-all" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white text-black transition-all">All</button>
+        <button onclick="filterTable('earning')" id="filter-btn-earning" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 transition-all">Earnings</button>
+        <button onclick="filterTable('refund')" id="filter-btn-refund" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 transition-all">Refunds</button>
+      </div>
+    </div>
+
+    <!-- Main Table Container Card -->
+    <div class="rounded-[2rem] p-6 md:p-8 shadow-2xl space-y-6" 
+         style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+      
+      <!-- Table Header Title / Live Search Bar -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-white/10">
+        <div>
+          <h3 class="text-base font-bold text-white">All Records</h3>
+          <span class="text-xs text-white/40">Showing complete historical ledger</span>
+        </div>
+        <div class="w-full sm:w-auto">
+          <input type="text" id="table-search-input" onkeyup="searchTable()" placeholder="Search transactions..." 
+                 class="w-full sm:w-64 bg-white/[0.03] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/40">
+        </div>
+      </div>
+
+     <!-- History Table Wrapper -->
+<div class="overflow-x-auto">
+  <table class="w-full text-left border-collapse" id="payment-history-table">
+    <thead>
+      <tr class="border-b border-white/10 text-[10px] uppercase tracking-wider text-white/40">
+        <th class="pb-3 font-semibold">Date</th>
+        <th class="pb-3 font-semibold">Type</th>
+        <th class="pb-3 font-semibold">Pool / Service</th>
+        <th class="pb-3 font-semibold">Amount</th>
+        <th class="pb-3 font-semibold text-right">Status</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-white/5 text-xs font-medium">
+      {% for payment in recent_payments %}
+        <!-- Entire row links to the receipt detail view using payment.pk -->
+        <tr class="payment-row hover:bg-white/[0.04] transition-colors cursor-pointer group" 
+            data-kind="{{ payment.kind }}" 
+            onclick="window.location='{% url 'payment_receipt' payment.pk %}'">
+          
+          <!-- Date -->
+          <td class="py-4 text-white/80 font-mono">
+            <a href="{% url 'payment_receipt' payment.pk %}" class="hover:underline">
+              {{ payment.created_at|date:"M d, Y" }}
+            </a>
+          </td>
+          
+          <!-- Type -->
+          <td class="py-4">
+            <span class="px-2.5 py-1 rounded-md text-[10px] uppercase font-bold 
+              {% if payment.kind == 'earning' %}text-sky-400 bg-sky-500/10 border border-sky-500/20
+              {% else %}text-purple-400 bg-purple-500/10 border border-purple-500/20{% endif %}">
+              {{ payment.get_kind_display }}
+            </span>
+          </td>
+
+          <!-- Pool / Service -->
+          <td class="py-4 text-white/90 font-medium searchable-text group-hover:text-sky-300 transition-colors">
+            {{ payment.pool.service.name }}
+          </td>
+
+          <!-- Amount -->
+          <td class="py-4 text-white font-bold font-mono searchable-text">
+            {% if payment.kind == 'earning' %}+{% else %}-{% endif %}₦{{ payment.amount|floatformat:2 }}
+          </td>
+
+          <!-- Status -->
+          <td class="py-4 text-right">
+            <span class="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+              Completed
+            </span>
+          </td>
+        </tr>
+      {% empty %}
+        <!-- Empty State Message -->
+        <tr id="empty-state-row">
+          <td colspan="5" class="py-16 text-center text-white/40 text-xs space-y-2">
+            <p class="text-sm font-semibold text-white/60">History is empty. No transactions found.</p>
+            <p class="text-[11px]">Your completed pool contributions and host payouts will show up here.</p>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+      <!-- Server-side Pagination Controls -->
+      <div class="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-white/5 text-xs text-white/40">
+        <span>Page {{ recent_payments.number }} of {{ recent_payments.paginator.num_pages }}</span>
+        
+        <div class="flex items-center gap-1.5 mt-2 sm:mt-0">
+          {% if recent_payments.has_previous %}
+            <a href="?page={{ recent_payments.previous_page_number }}" class="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all">Previous</a>
+          {% else %}
+            <span class="px-3 py-1 rounded-lg bg-white/5 text-white/20 border border-white/10 cursor-not-allowed">Previous</span>
+          {% endif %}
+
+          <span class="px-3 py-1 rounded-lg bg-white/10 text-white font-bold">{{ recent_payments.number }}</span>
+
+          {% if recent_payments.has_next %}
+            <a href="?page={{ recent_payments.next_page_number }}" class="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all">Next</a>
+          {% else %}
+            <span class="px-3 py-1 rounded-lg bg-white/5 text-white/20 border border-white/10 cursor-not-allowed">Next</span>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<!-- JavaScript for Live Search & Category Filtering -->
+<script>
+  let currentFilter = 'all';
+
+  function searchTable() {
+    const input = document.getElementById('table-search-input');
+    const filter = input.value.toLowerCase();
+    const rows = document.querySelectorAll('.payment-row');
+
+    rows.forEach(row => {
+      const textContent = row.textContent.toLowerCase();
+      const kind = row.getAttribute('data-kind');
+      
+      const matchesSearch = textContent.includes(filter);
+      const matchesFilter = (currentFilter === 'all' || kind === currentFilter);
+
+      if (matchesSearch && matchesFilter) {
+        row.style.display = "";
+      } else {
+        row.style.display = "none";
+      }
+    });
+  }
+
+  function filterTable(kind) {
+    currentFilter = kind;
+    
+    // Update active button styling
+    ['all', 'earning', 'refund'].forEach(btnType => {
+      const btn = document.getElementById(`filter-btn-${btnType}`);
+      if (btnType === kind) {
+        btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white text-black transition-all";
+      } else {
+        btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 transition-all";
+      }
+    });
+
+    // Re-run search logic to apply both search query and new filter type
+    searchTable();
+  }
+</script>
+{% endblock %}

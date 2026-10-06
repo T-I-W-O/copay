@@ -1,0 +1,374 @@
+{% extends 'navbar.html' %}
+
+{% block content %}
+<!-- CoPay Dispute Detail Page -->
+<main class="min-h-screen text-white pt-24 pb-24" style="background: #05080F;">
+  <div class="px-4 md:px-8 lg:px-16 max-w-4xl mx-auto w-full space-y-8">
+
+    <!-- 1. Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="space-y-2">
+        <button type="button" onclick="window.history.back()" class="inline-flex items-center gap-1.5 text-xs font-bold text-white/60 hover:text-white transition-colors">
+            ← Back
+        </button>
+        <div class="flex items-center gap-3">
+          <h1 class="font-black text-white text-2xl md:text-3xl">Dispute {% if dispute.name %}{{ dispute.name }}{% else %}#DSP-{{ dispute.id }}{% endif %}</h1>
+
+          <!-- Status Badge -->
+          {% if dispute.status == 'open' %}
+            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Open
+            </span>
+          {% elif dispute.status == 'under_review' %}
+            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> Under Review
+            </span>
+          {% else %}
+            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Resolved
+            </span>
+          {% endif %}
+        </div>
+        <p class="text-xs text-white/50">Submitted on {{ dispute.created_at|date:"F j, Y \a\t H:i" }} WAT</p>
+      </div>
+    </div>
+
+    <!-- Main Grid Layout -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+      <!-- Left Column: Dispute Details & Resolution Info -->
+      <div class="md:col-span-2 space-y-8">
+
+        <!-- 2. Dispute Details Card -->
+        <div class="rounded-[1.5rem] p-6 md:p-8 space-y-6" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+          <div class="flex items-center justify-between pb-4 border-b border-white/5">
+            <h3 class="text-base font-bold text-white">Dispute Case Information</h3>
+            <span class="text-xs font-mono text-white/40">ID: {{ dispute.id }}</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div class="p-3.5 rounded-xl bg-white/[0.02] border border-white/5">
+              <span class="text-[10px] uppercase tracking-wider text-white/40 block mb-1">Opened By</span>
+              <span class="font-bold text-white">@{{ dispute.opened_by.username }}
+                <span class="text-white/40 font-normal">
+                  ({% if dispute.opened_by == pool.host %}Host{% else %}Contributor{% endif %})
+                </span>
+              </span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-white/[0.02] border border-white/5">
+              <span class="text-[10px] uppercase tracking-wider text-white/40 block mb-1">Dispute Against</span>
+              <span class="font-bold text-white">@{{ dispute.against_user.username }}
+                <span class="text-white/40 font-normal">
+                  ({% if dispute.against_user == pool.host %}Host{% else %}Contributor{% endif %})
+                </span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Reason Box -->
+          <div class="space-y-2">
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-white/40">Dispute Reason</label>
+            <div class="p-4 rounded-xl bg-white/[0.03] border border-white/10 text-xs text-white/80 leading-relaxed font-mono">
+              "{{ dispute.reason }}"
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Customer Service / Resolution Section -->
+        <div class="rounded-[1.5rem] p-6 md:p-8 space-y-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-bold text-white">Customer Service & Resolution</h3>
+            <span class="text-xs text-white/40">External Mediation</span>
+          </div>
+
+          {% if dispute.status == 'open' %}
+            <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs leading-relaxed space-y-2">
+              <p class="font-bold">Dispute Submitted Successfully</p>
+              <p class="text-amber-200/80">
+                Your dispute has been logged. CoPay customer service will review the details and contact the involved users via phone or email if necessary.
+              </p>
+            </div>
+          {% elif dispute.status == 'under_review' %}
+            <div class="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200 text-xs leading-relaxed space-y-2">
+              <p class="font-bold">Case Under Investigation</p>
+              <p class="text-blue-200/80">Support staff are actively auditing vault files and communication logs for this case.</p>
+            </div>
+          {% else %}
+            <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-200 text-xs leading-relaxed space-y-2">
+              <p class="font-bold">Dispute Resolved</p>
+              <p class="text-emerald-200/80 font-mono">{{ dispute.resolution }}</p>
+              <p class="text-[10px] text-emerald-400/60 pt-1">Resolved on {{ dispute.resolved_at|date:"F j, Y \a\t H:i" }}</p>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- 5. Participant Actions: the ONLY thing a host or contributor can do is resolve,
+                  and only if they opened the dispute. No cancel, no leave. -->
+        <div class="rounded-[1.5rem] p-6 md:p-8 space-y-6" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+          <div>
+            <h3 class="text-base font-bold text-white">Participant Actions</h3>
+            <p class="text-xs text-white/50 mt-0.5">Only the person who opened this dispute can mark it as resolved.</p>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4 pt-2">
+            {% if dispute.status == 'resolved' %}
+              <div class="w-full py-3.5 px-4 rounded-xl font-bold text-xs text-center bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                Dispute Already Resolved
+              </div>
+            {% elif pool.status == 'cancelled' %}
+              <div class="w-full py-3.5 px-4 rounded-xl font-bold text-xs text-center bg-white/5 border border-white/10 text-white/40 flex items-center justify-center">
+                Cannot Resolve (Pool Cancelled)
+              </div>
+            {% elif request.user == dispute.opened_by %}
+              {% if dispute.opened_by != pool.host and not user_membership %}
+                <div class="w-full py-3.5 px-4 rounded-xl font-bold text-xs text-center bg-white/5 border border-white/10 text-white/40 flex items-center justify-center">
+                  Cannot Resolve (Inactive Contributor)
+                </div>
+              {% else %}
+                <button id="open-resolve-modal" class="w-full py-3.5 px-4 rounded-xl font-bold text-xs text-center transition-all hover:scale-[1.01] bg-emerald-500 text-black shadow-lg flex items-center justify-center gap-2">
+                  <span>✓</span> Confirm Issue Resolved
+                </button>
+              {% endif %}
+            {% else %}
+              <div class="w-full py-3.5 px-4 rounded-xl font-bold text-xs text-center bg-white/5 border border-white/10 text-white/40 flex items-center justify-center">
+                Only Opener Can Resolve
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- 6. ADMIN TOOLS: only CoPay admins (superuser / staff / group "admin") see this -->
+        {% if is_admin and dispute.status == 'open' %}
+        <div class="rounded-[1.5rem] p-6 md:p-8 space-y-6" style="background: rgba(239,68,68,0.04); border: 1px solid rgba(239,68,68,0.25);">
+          <div>
+            <h3 class="text-base font-bold text-white">Admin Tools</h3>
+            <p class="text-xs text-white/50 mt-0.5">
+              Cancelling a pool or removing a member opens a Payscrow dispute to request a partial refund, and notifies the people affected.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4 pt-2">
+            {% if pool.status == 'cancelled' %}
+              <div class="w-full py-3.5 px-4 rounded-xl font-bold text-xs text-center bg-white/5 border border-white/10 text-white/40 flex items-center justify-center">
+                Pool Already Cancelled
+              </div>
+            {% elif pool.status == 'completed' %}
+              <div class="w-full py-3.5 px-4 rounded-xl font-bold text-xs text-center bg-white/5 border border-white/10 text-white/40 flex items-center justify-center">
+                Pool Already Completed
+              </div>
+            {% else %}
+              <button id="open-cancel-modal" class="w-full py-3.5 px-4 rounded-xl font-bold text-xs text-center transition-all hover:scale-[1.01] bg-white/5 hover:bg-red-500/10 hover:border-red-500/30 border border-white/10 text-white hover:text-red-400">
+                Cancel Pool
+              </button>
+            {% endif %}
+
+            {% for m in removable_members %}
+              <button type="button"
+                      class="open-remove-modal w-full py-3.5 px-4 rounded-xl font-bold text-xs text-center transition-all hover:scale-[1.01] bg-white/5 hover:bg-red-500/10 hover:border-red-500/30 border border-white/10 text-white hover:text-red-400"
+                      data-url="{% url 'remove_member_ajax' pool.pk m.pk %}"
+                      data-username="{{ m.user.username }}">
+                Remove @{{ m.user.username }} From Pool
+              </button>
+            {% empty %}
+              <div class="w-full py-3.5 px-4 rounded-xl font-bold text-xs text-center bg-white/5 border border-white/10 text-white/40 flex items-center justify-center">
+                No active contributor in this dispute to remove
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+
+      <!-- Right Column: Pool Details Card -->
+      <div class="space-y-8">
+        <div class="rounded-[1.5rem] p-6 md:p-8 space-y-6 sticky top-24" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+          <div>
+            <span class="text-[10px] uppercase tracking-widest font-bold text-white/40 block mb-1">Related Pool</span>
+            <h4 class="text-lg font-bold text-white">{{ pool.service.name }} Shared Pool</h4>
+          </div>
+
+          <div class="space-y-4 pt-2 border-t border-white/5 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="text-white/40">Service:</span>
+              <span class="font-semibold text-white">{{ pool.service.name }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-white/40">Total Pool Price:</span>
+              <span class="font-bold text-white">₦{{ pool.price }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-white/40">Host:</span>
+              <span class="font-semibold text-white">@{{ pool.host.username }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-white/40">Total Users:</span>
+              <span class="font-semibold text-white">{{ pool.current_users }} / {{ pool.number_of_users }} Members</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-white/40">Duration:</span>
+              <span class="font-semibold text-white">{{ pool.duration_days }} Days</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-white/40">Pool Status:</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400">{{ pool.status|title }}</span>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <a href="{% url 'market_detail' pool.pk %}" class="w-full py-2.5 rounded-xl font-bold text-xs text-center block transition-all bg-white/5 hover:bg-white/10 border border-white/10 text-white">
+              View Pool Central Room →
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- CONFIRMATION MODALS -->
+<!-- 1. Resolve Modal with Custom Input -->
+<div id="resolve-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden">
+  <div class="bg-[#0b101a] border border-white/10 rounded-2xl p-6 max-w-md w-full mx-4 space-y-4">
+    <h3 class="text-lg font-bold text-white">Confirm Issue Resolution</h3>
+    <p class="text-xs text-white/60">Are you sure you want to mark this dispute as resolved? Please provide details on how the issue was resolved.</p>
+
+    <div class="space-y-1.5">
+      <label class="block text-[10px] font-bold uppercase tracking-wider text-white/40">Resolution Explanation <span class="text-red-400">*</span></label>
+      <textarea id="resolution-reason-input" rows="3" placeholder="Explain how you resolved this issue..." class="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-emerald-500"></textarea>
+    </div>
+
+    <div class="flex gap-3 pt-2">
+      <button id="cancel-resolve-btn" class="w-1/2 py-2.5 rounded-xl bg-white/5 text-white text-xs font-bold hover:bg-white/10">Cancel</button>
+      <button id="confirm-resolve-btn" class="w-1/2 py-2.5 rounded-xl bg-emerald-500 text-black text-xs font-bold hover:bg-emerald-400">Save & Resolve</button>
+    </div>
+  </div>
+</div>
+
+{% if is_admin and dispute.status == 'open' %}
+<!-- 2. Remove Member Modal (admin) -->
+<div id="remove-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden">
+  <div class="bg-[#0b101a] border border-white/10 rounded-2xl p-6 max-w-md w-full mx-4 space-y-4">
+    <h3 class="text-lg font-bold text-white">Remove Member</h3>
+    <p class="text-xs text-white/60">
+      Remove <span id="remove-username" class="font-bold text-white"></span> from this pool?
+      A Payscrow dispute will be opened to request a partial refund, and they will be notified.
+    </p>
+    <div class="flex gap-3 pt-2">
+      <button id="dismiss-remove-btn" class="w-1/2 py-2.5 rounded-xl bg-white/5 text-white text-xs font-bold hover:bg-white/10">No</button>
+      <button id="confirm-remove-btn" class="w-1/2 py-2.5 rounded-xl bg-red-500 text-white text-xs font-bold hover:bg-red-400">Yes, Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Cancel Pool Modal (admin) -->
+<div id="cancel-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden">
+  <div class="bg-[#0b101a] border border-white/10 rounded-2xl p-6 max-w-md w-full mx-4 space-y-4">
+    <h3 class="text-lg font-bold text-white">Cancel Pool Confirmation</h3>
+    <p class="text-xs text-white/60">
+      Cancelling closes this pool for everyone. A Payscrow dispute will be opened for every paid member to request a partial refund, and the host and members will be notified.
+    </p>
+    <div class="flex gap-3 pt-2">
+      <button id="dismiss-cancel-btn" class="w-1/2 py-2.5 rounded-xl bg-white/5 text-white text-xs font-bold hover:bg-white/10">No</button>
+      <button id="confirm-cancel-btn" class="w-1/2 py-2.5 rounded-xl bg-red-500 text-white text-xs font-bold hover:bg-red-400">Yes, Cancel Pool</button>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<script>
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  const setupModal = (openBtnId, modalId, closeBtnId) => {
+    const openBtn = document.getElementById(openBtnId);
+    const modal = document.getElementById(modalId);
+    const closeBtn = document.getElementById(closeBtnId);
+    if (openBtn && modal && closeBtn) {
+      openBtn.addEventListener('click', () => modal.classList.remove('hidden'));
+      closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+    }
+  };
+
+  setupModal('open-resolve-modal', 'resolve-modal', 'cancel-resolve-btn');
+  setupModal('open-cancel-modal', 'cancel-modal', 'dismiss-cancel-btn');
+
+  // POST helper for the admin actions (the Payscrow call can take a few seconds)
+  const postAction = (url, button) => {
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Working...';
+
+    fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) { alert(data.message); location.reload(); }
+      else { alert(data.error); button.disabled = false; button.textContent = originalText; }
+    })
+    .catch(() => {
+      alert('The request failed. Please try again.');
+      button.disabled = false;
+      button.textContent = originalText;
+    });
+  };
+
+  // AJAX: Resolve Dispute with custom textarea explanation (opener only)
+  document.getElementById('confirm-resolve-btn')?.addEventListener('click', () => {
+    const resolutionText = document.getElementById('resolution-reason-input').value.trim();
+    if (!resolutionText) {
+      alert('Please provide an explanation of how the dispute was resolved.');
+      return;
+    }
+
+    fetch("{% url 'resolve_dispute_ajax' dispute.pk %}", {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resolution: resolutionText })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) { location.reload(); } else { alert(data.error); }
+    });
+  });
+
+  {% if is_admin and dispute.status == 'open' %}
+  // ADMIN: remove a member
+  let removeUrl = null;
+  document.querySelectorAll('.open-remove-modal').forEach(btn => {
+    btn.addEventListener('click', () => {
+      removeUrl = btn.dataset.url;
+      document.getElementById('remove-username').textContent = '@' + btn.dataset.username;
+      document.getElementById('remove-modal').classList.remove('hidden');
+    });
+  });
+  document.getElementById('dismiss-remove-btn')?.addEventListener('click', () => {
+    document.getElementById('remove-modal').classList.add('hidden');
+  });
+  document.getElementById('confirm-remove-btn')?.addEventListener('click', (e) => {
+    if (removeUrl) { postAction(removeUrl, e.currentTarget); }
+  });
+
+  // ADMIN: cancel the pool
+  document.getElementById('confirm-cancel-btn')?.addEventListener('click', (e) => {
+    postAction("{% url 'cancel_pool_ajax_admin' pool.pk %}", e.currentTarget);
+  });
+  {% endif %}
+</script>
+{% endblock %}

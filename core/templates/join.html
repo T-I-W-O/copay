@@ -1,0 +1,295 @@
+{% include "rating.html" %}
+<!-- 6. Join / Membership Action Compartment (Hidden for Host) -->
+{% if not is_host %}
+<div class="rounded-[1.5rem] p-6 md:p-8 space-y-6"
+     style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15);"
+     id="pool-membership-compartment"
+     data-pool-id="{{ pool.id }}"
+     data-remaining-days="{{ remaining_days }}"
+     data-warning-threshold="14">
+  <div>
+    {% if not pool.active %}
+      <h3 class="text-lg font-bold text-white" id="membership-title">Pool Inactive</h3>
+      <p class="text-xs text-white/60 mt-1" id="membership-desc">
+        This subscription pool is currently inactive. All membership actions are locked.
+      </p>
+    {% elif membership and membership.active %}
+      <h3 class="text-lg font-bold text-white" id="membership-title">Pool Membership Active</h3>
+      <p class="text-xs text-white/60 mt-1" id="membership-desc">
+        You are an active participant in this subscription pool.
+      </p>
+    {% elif pool.status == 'open' and not is_member %}
+      <h3 class="text-lg font-bold text-white" id="membership-title">Join Summary</h3>
+      <p class="text-xs text-white/60 mt-1 leading-relaxed">
+        Review your contribution share for this subscription pool.
+      </p>
+    {% elif pool.status == 'close' and not is_member %}
+      <h3 class="text-lg font-bold text-white" id="membership-title">Joining Closed</h3>
+      <p class="text-xs text-white/60 mt-1" id="membership-desc">
+        This subscription pool is currently closed to new members.
+      </p>
+    {% else %}
+      <h3 class="text-lg font-bold text-white" id="membership-title">Membership Ended</h3>
+      <p class="text-xs text-white/60 mt-1" id="membership-desc">
+        You left this pool. Your slot is no longer active.
+      </p>
+    {% endif %}
+  </div>
+
+  <!-- Clean Professional Join Summary Box -->
+  {% if pool.status == 'open' and not is_member and pool.active %}
+  <div id="calculation-breakdown-box" class="rounded-2xl p-5 space-y-4 bg-white/[0.02] border border-white/10 text-xs">
+    <div class="text-white/50 text-center py-3">Loading checkout summary...</div>
+  </div>
+  {% endif %}
+
+  <div id="membership-action-container">
+    {% if not pool.active %}
+      <span class="text-xs text-white/40 italic block">Pool is inactive</span>
+    {% elif membership and membership.active %}
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        You have joined
+      </div>
+    {% elif pool.status == 'open' and not is_member %}
+      <button type="button" id="join-pool-btn" class="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-xs text-center transition-all hover:scale-[1.02] bg-white text-black shadow-lg block">
+        Join and Pay via PayScrow
+      </button>
+    {% elif pool.status == 'close' and not is_member %}
+      <span class="text-xs text-white/40 italic block">Joining is closed</span>
+    {% else %}
+      <span class="text-xs text-white/40 italic block">You left this pool</span>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Short-Duration Warning Modal -->
+<div id="short-duration-modal"
+     class="fixed inset-0 z-[9999] hidden items-center justify-center p-4"
+     role="dialog" aria-modal="true" aria-labelledby="sdm-title" aria-hidden="true">
+  <div id="sdm-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm opacity-0 transition-opacity duration-200"></div>
+
+  <div id="sdm-card"
+       class="relative w-full max-w-sm rounded-[1.75rem] p-7 text-center opacity-0 scale-95 translate-y-2 transition-all duration-200"
+       style="background: #15151a; border: 1px solid rgba(251,191,36,0.35); box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(251,191,36,0.08);">
+
+    <!-- Cute icon -->
+    <div class="mx-auto mb-4 w-16 h-16 rounded-full flex items-center justify-center text-3xl sdm-wiggle"
+         style="background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.3);">
+      ⏳
+    </div>
+
+    <h4 id="sdm-title" class="text-lg font-extrabold text-white">Hold on a sec!</h4>
+
+    <p class="text-xs text-white/65 mt-2 leading-relaxed">
+      You're about to pay for a service with less than
+      <span class="text-amber-400 font-bold" id="sdm-threshold">14 days</span> left.
+    </p>
+
+    <div class="mt-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-bold text-amber-300"
+         style="background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25);">
+      <span id="sdm-remaining-text">Only a few days remaining</span>
+    </div>
+
+    <p class="text-[11px] text-white/40 mt-3">Still want to continue?</p>
+
+    <div class="mt-6 flex flex-col-reverse sm:flex-row gap-3">
+      <button type="button" id="sdm-cancel"
+              class="flex-1 px-5 py-3 rounded-xl text-xs font-bold text-white/80 transition-all hover:bg-white/10"
+              style="border: 1px solid rgba(255,255,255,0.18);">
+        Cancel
+      </button>
+      <button type="button" id="sdm-ok"
+              class="flex-1 px-5 py-3 rounded-xl text-xs font-bold text-black bg-amber-400 transition-all hover:scale-[1.03] hover:bg-amber-300">
+        OK, proceed
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  #short-duration-modal.sdm-open { display: flex; }
+  #short-duration-modal.sdm-open #sdm-backdrop { opacity: 1; }
+  #short-duration-modal.sdm-open #sdm-card { opacity: 1; transform: scale(1) translateY(0); }
+  @keyframes sdm-wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    20% { transform: rotate(-10deg); }
+    40% { transform: rotate(10deg); }
+    60% { transform: rotate(-6deg); }
+    80% { transform: rotate(6deg); }
+  }
+  .sdm-wiggle { animation: sdm-wiggle 1.6s ease-in-out 0.25s 2; }
+  @media (prefers-reduced-motion: reduce) {
+    .sdm-wiggle { animation: none; }
+    #sdm-card, #sdm-backdrop { transition: none; }
+  }
+</style>
+
+<!-- AJAX Scripts for Fetching Summary & Handling Join Actions -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const compartment = document.getElementById("pool-membership-compartment");
+    if (!compartment) return;
+    const poolId = compartment.dataset.poolId;
+    const remainingDays = parseInt(compartment.dataset.remainingDays, 10);
+    const threshold = parseInt(compartment.dataset.warningThreshold, 10) || 14;
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // ---------- Short-duration warning modal ----------
+    const modal = document.getElementById("short-duration-modal");
+    const okBtn = document.getElementById("sdm-ok");
+    const cancelBtn = document.getElementById("sdm-cancel");
+    const backdrop = document.getElementById("sdm-backdrop");
+    const remainingText = document.getElementById("sdm-remaining-text");
+    const thresholdText = document.getElementById("sdm-threshold");
+    let lastFocused = null;
+
+    function shouldWarn() {
+        // Only warn when we actually know the remaining days
+        return !isNaN(remainingDays) && remainingDays < threshold;
+    }
+
+    function openModal() {
+        thresholdText.textContent = threshold + " days";
+        if (remainingDays <= 0) {
+            remainingText.textContent = "This subscription has run out of time";
+        } else if (remainingDays === 1) {
+            remainingText.textContent = "Only 1 day remaining";
+        } else {
+            remainingText.textContent = "Only " + remainingDays + " days remaining";
+        }
+        lastFocused = document.activeElement;
+        modal.classList.add("sdm-open");
+        modal.setAttribute("aria-hidden", "false");
+        // let display apply before animating
+        requestAnimationFrame(() => cancelBtn.focus());
+    }
+
+    function closeModal() {
+        modal.classList.remove("sdm-open");
+        modal.setAttribute("aria-hidden", "true");
+        if (lastFocused) lastFocused.focus();
+    }
+
+    cancelBtn.addEventListener("click", closeModal);
+    backdrop.addEventListener("click", closeModal);
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && modal.classList.contains("sdm-open")) closeModal();
+    });
+
+    okBtn.addEventListener("click", function () {
+        closeModal();
+        const joinBtn = document.getElementById("join-pool-btn");
+        if (joinBtn) startPayment(joinBtn);
+    });
+
+    // ---------- Fetch summary metrics ----------
+    const breakdownBox = document.getElementById("calculation-breakdown-box");
+    if (breakdownBox) {
+        fetch(`/pools/${poolId}/calculation/`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    breakdownBox.innerHTML = `
+                        <div class="space-y-2.5 pb-3 border-b border-white/10">
+                          <div class="flex justify-between items-center text-white/70">
+                            <span>Slot price per person</span>
+                            <span class="font-medium text-white">₦${data.amount_per_person.toFixed(2)}</span>
+                          </div>
+                          <div class="flex justify-between items-center text-white font-semibold pt-1">
+                            <span>Base Pool Share</span>
+                            <span class="text-white">₦${data.amount_per_person.toFixed(2)}</span>
+                          </div>
+                        </div>
+
+                        <div class="space-y-2 pb-3 border-b border-white/10 text-white/60 text-[11px]">
+                          <div class="flex justify-between items-center">
+                            <span>CoPay platform fee (${data.site_percentage}% + flat fee)</span>
+                            <span>+₦${(data.copay_percentage_fee + data.copay_flat_fee).toFixed(2)}</span>
+                          </div>
+                        </div>
+
+                        <div class="pt-1 flex flex-col space-y-2">
+                          <div class="flex justify-between items-center">
+                            <span class="text-sm font-bold text-white">Total Due</span>
+                            <span class="text-lg font-extrabold text-emerald-400">₦${data.calculated_copay_total.toFixed(2)}</span>
+                          </div>
+                          <span class="text-[11px] text-amber-400/90 italic">
+                            *PayScrow escrow processing adds separate gateway charges at checkout.
+                          </span>
+                        </div>
+                    `;
+
+                    const joinBtn = document.getElementById("join-pool-btn");
+                    if (joinBtn) {
+                        joinBtn.dataset.label = `Join and Pay via PayScrow (₦${data.calculated_copay_total.toFixed(2)})`;
+                        joinBtn.innerText = joinBtn.dataset.label;
+                    }
+                }
+            })
+            .catch(err => {
+                console.error("Failed to load calculation breakdown:", err);
+                breakdownBox.innerHTML = `<span class="text-red-400 text-center block py-2">Could not load summary details.</span>`;
+            });
+    }
+
+    // ---------- Payment initialization ----------
+    function startPayment(btn) {
+        const originalLabel = btn.dataset.label || "Join and Pay via PayScrow";
+        btn.disabled = true;
+        btn.innerText = "Initializing Secure Checkout...";
+
+        fetch(`/pools/${poolId}/pay/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken,
+                "Content-Type": "application/json"
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.payment_link) {
+                window.location.href = data.payment_link;
+            } else {
+                alert(data.message || data.error || "Initialization failed. Please try again.");
+                btn.disabled = false;
+                btn.innerText = originalLabel;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("An unexpected network error occurred.");
+            btn.disabled = false;
+            btn.innerText = originalLabel;
+        });
+    }
+
+    // ---------- Join click: warn first if the pool is almost over ----------
+    document.body.addEventListener("click", function (e) {
+        const btn = e.target.closest("#join-pool-btn");
+        if (!btn || btn.disabled) return;
+
+        if (shouldWarn()) {
+            openModal();   // OK -> startPayment, Cancel -> nothing happens
+        } else {
+            startPayment(btn);
+        }
+    });
+});
+</script>
+{% endif %}

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-black">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How It Works - CoPay</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-black text-white m-0 p-0 overflow-x-hidden">
+
+  <div class="relative" style="background: #000000; overflow: hidden;">
+    <!-- Floating Orbs & Gradients -->
+    <div
+      class="absolute top-0 right-0 w-[600px] h-[600px] rounded-full pointer-events-none mix-blend-screen filter blur-[150px] opacity-10"
+      style="background: radial-gradient(circle, #ffffff 0%, transparent 70%);"
+    ></div>
+    <div
+      class="absolute bottom-0 left-[-100px] w-[500px] h-[500px] rounded-full pointer-events-none mix-blend-screen filter blur-[130px] opacity-5"
+      style="background: radial-gradient(circle, #ffffff 0%, transparent 70%);"
+    ></div>
+
+    <section id="hiw-container" class="relative z-10" style="background: transparent;">
+
+      <div class="hiw-header pt-20 px-6 lg:px-16 text-center mb-16">
+        <p
+          class="text-sm font-bold tracking-widest uppercase mb-4 text-white/70"
+        >
+          How It Works
+        </p>
+        <h2
+          class="font-black text-white"
+          style="font-size: clamp(2.5rem, 5vw, 4.5rem);"
+        >
+          Three steps to savings
+        </h2>
+      </div>
+
+      <!-- Horizontal scrolling track wrapper -->
+      <div class="overflow-hidden w-full">
+        <div
+          id="hiw-track"
+          class="flex flex-col lg:flex-row items-stretch gap-6 lg:gap-8 pb-16 lg:pb-24 px-4 sm:px-8 lg:px-[10vw]"
+          style="width: 100%;"
+        >
+          <!-- Step 1 -->
+          <div
+            class="hiw-card w-full lg:w-[400px] lg:flex-shrink-0 rounded-[2rem] p-8 lg:p-10 flex flex-col justify-between relative bg-neutral-900/60 border border-white/10 backdrop-blur-xl"
+            style="box-shadow: 0 24px 48px rgba(0,0,0,0.6);"
+          >
+            <div>
+              <div class="flex items-start justify-between mb-10">
+                <div
+                  class="w-16 h-16 rounded-2xl flex items-center justify-center bg-white/10 border border-white/20"
+                >
+                  <i data-lucide="search" class="w-7 h-7 text-white"></i>
+                </div>
+                <span class="text-8xl font-black leading-none text-white opacity-10">01</span>
+              </div>
+              <h3 class="text-2xl font-black text-white mb-4">Browse & Join a Pool</h3>
+              <p class="text-base leading-relaxed text-white/60">
+                Explore hundreds of verified subscription pools. Find Netflix, Spotify, ChatGPT Plus, and more at a fraction of the cost.
+              </p>
+            </div>
+            <div class="flex gap-2 mt-10">
+              <div class="h-[3px] flex-1 rounded-full bg-white"></div>
+              <div class="h-[3px] flex-1 rounded-full bg-white/10"></div>
+              <div class="h-[3px] flex-1 rounded-full bg-white/10"></div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div
+            class="hiw-card w-full lg:w-[400px] lg:flex-shrink-0 rounded-[2rem] p-8 lg:p-10 flex flex-col justify-between relative bg-neutral-900/60 border border-white/10 backdrop-blur-xl"
+            style="box-shadow: 0 24px 48px rgba(0,0,0,0.6);"
+          >
+            <div>
+              <div class="flex items-start justify-between mb-10">
+                <div
+                  class="w-16 h-16 rounded-2xl flex items-center justify-center bg-white/10 border border-white/20"
+                >
+                  <i data-lucide="lock" class="w-7 h-7 text-white"></i>
+                </div>
+                <span class="text-8xl font-black leading-none text-white opacity-10">02</span>
+              </div>
+              <h3 class="text-2xl font-black text-white mb-4">Payment Goes into Escrow</h3>
+<p class="text-base leading-relaxed text-white/60"> Your payment is held securely while your access is verified. The host only earns what they’ve actually delivered, and any unused amount can be reversed. </p>
+            </div>
+            <div class="flex gap-2 mt-10">
+              <div class="h-[3px] flex-1 rounded-full bg-white"></div>
+              <div class="h-[3px] flex-1 rounded-full bg-white"></div>
+              <div class="h-[3px] flex-1 rounded-full bg-white/10"></div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div
+            class="hiw-card w-full lg:w-[400px] lg:flex-shrink-0 rounded-[2rem] p-8 lg:p-10 flex flex-col justify-between relative bg-neutral-900/60 border border-white/10 backdrop-blur-xl"
+            style="box-shadow: 0 24px 48px rgba(0,0,0,0.6);"
+          >
+            <div>
+              <div class="flex items-start justify-between mb-10">
+                <div
+                  class="w-16 h-16 rounded-2xl flex items-center justify-center bg-white/10 border border-white/20"
+                >
+                  <i data-lucide="check-circle-2" class="w-7 h-7 text-white"></i>
+                </div>
+                <span class="text-8xl font-black leading-none text-white opacity-10">03</span>
+              </div>
+              <h3 class="text-2xl font-black text-white mb-4">Verify & Confirm Access</h3>
+              <p class="text-base leading-relaxed text-white/60">
+                Test the encrypted credentials. Confirm if they work and the host gets paid. If not, you get a 100% refund. Zero risk.
+              </p>
+            </div>
+            <div class="flex gap-2 mt-10">
+              <div class="h-[3px] flex-1 rounded-full bg-white"></div>
+              <div class="h-[3px] flex-1 rounded-full bg-white"></div>
+              <div class="h-[3px] flex-1 rounded-full bg-white"></div>
+            </div>
+          </div>
+
+          <!-- Final Card / CTA -->
+          <div
+            class="hiw-card w-full lg:w-[320px] lg:flex-shrink-0 rounded-[2rem] p-8 lg:p-10 flex flex-col items-center justify-center text-center bg-white text-black border border-white/20"
+            style="box-shadow: 0 24px 48px rgba(255,255,255,0.15);"
+          >
+            <div
+              class="w-20 h-20 rounded-full flex items-center justify-center mb-6 bg-black/10"
+            >
+              <i data-lucide="arrow-right" class="w-9 h-9 text-black"></i>
+            </div>
+            <h3 class="text-2xl font-black text-black mb-3">Ready?</h3>
+            <p class="text-sm mb-8 text-black/70">
+              Join thousands saving money today
+            </p>
+            <a
+              href="/marketplace/"
+              class="px-7 py-3 rounded-full font-black text-sm transition-all hover:scale-105 inline-block bg-black text-white"
+            >
+              Get Started Free
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- GSAP & ScrollTrigger CDNs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+  <!-- Animation Script -->
+  <script>
+    lucide.createIcons();
+    gsap.registerPlugin(ScrollTrigger);
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const container = document.getElementById("hiw-container");
+      const track = document.getElementById("hiw-track");
+
+      // Header entrance animation
+      gsap.from('.hiw-header', {
+        opacity: 0,
+        y: 40,
+        duration: 0.9,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: container,
+          start: 'top 80%',
+        },
+      });
+
+      const mm = gsap.matchMedia();
+
+      // Desktop Horizontal Scrubbing & Pinning
+      mm.add("(min-width: 1024px)", () => {
+        if (!track || !container) return;
+        const totalWidth = track.scrollWidth - window.innerWidth + 80;
+
+        gsap.to(track, {
+          x: -totalWidth,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: container,
+            pin: true,
+            scrub: 1.5,
+            start: 'top top',
+            end: () => `+=${totalWidth}`,
+            anticipatePin: 1,
+          },
+        });
+      });
+
+      // Individual cards fade up
+      const cards = container.querySelectorAll('.hiw-card');
+      cards.forEach((card) => {
+        gsap.from(card, {
+          opacity: 0,
+          y: 40,
+          scale: 0.98,
+          duration: 0.8,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: card,
+            start: 'top 85%',
+            toggleActions: 'play none none none',
+          },
+        });
+      });
+    });
+  </script>
+</body>
+</html>

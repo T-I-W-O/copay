@@ -1,0 +1,28 @@
+<!-- Reusable Button Component Template -->
+<!-- Usage note: Change classes/attributes as needed or use macro/include parameters if using template engines like Jinja/Twig -->
+
+<button
+  type="button"
+  class="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50 bg-white text-black hover:bg-white/90"
+  id="custom-button"
+>
+  <!-- Optional Loading Spinner (hidden by default, toggle with JS 'hidden' class) -->
+  <span id="button-loader" class="mr-2 animate-spin hidden">⏳</span>
+  
+  <span id="button-text">Button Text</span>
+</button>
+
+<!-- Script snippet for demo / state handling -->
+<script>
+  // Helper function to toggle button loading state
+  function setButtonLoading(buttonEl, isLoading) {
+    const loader = buttonEl.querySelector('#button-loader');
+    if (isLoading) {
+      buttonEl.disabled = true;
+      loader.classList.remove('hidden');
+    } else {
+      buttonEl.disabled = false;
+      loader.classList.add('hidden');
+    }
+  }
+</script>

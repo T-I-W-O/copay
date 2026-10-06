@@ -1,0 +1,283 @@
+
+<!-- 9. Pool Vault Compartment -->
+{% include 'market_vault.html' %}
+ <!-- 10. Access Confirmation -->
+<!-- Access & Escrow / Dispute Compartment -->
+<div class="rounded-[1.5rem] p-6 md:p-8 space-y-4 {% if not is_host and not is_paid_member %}opacity-50 pointer-events-none{% endif %}" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);" id="access-confirmation-compartment" data-pool-id="{{ pool.id }}">
+  
+  {% if is_host %}
+    <!-- HOST/ADMIN VIEW: Dispute Support Management -->
+    <div>
+      <h3 class="text-lg font-bold text-white">Dispute Support</h3>
+      <p class="text-xs text-white/40 mt-0.5">
+        {% if def_host %}
+          File a dispute against any of the pool contributors.
+        {% else %}
+          Monitor active disputes for this pool.
+        {% endif %}
+      </p>
+    </div>
+
+    {% if def_host %}
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 rounded-xl {% if not pool.active %}bg-white/[0.02] border border-white/5{% else %}bg-white/5 border border-white/10{% endif %}">
+      <span class="text-xs {% if not pool.active %}text-white/30{% else %}text-white/60{% endif %}">
+        {% if not pool.active %}
+          Disputes are closed because this pool has been cancelled.
+        {% else %}
+          Manage active pool participant issues.
+        {% endif %}
+      </span>
+
+      {% if not pool.active %}
+        <button type="button" disabled class="px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-white/30 border border-white/5 cursor-not-allowed shadow-none">
+          Open Dispute
+        </button>
+      {% else %}
+        <button type="button" id="open-general-dispute-btn" class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-black hover:bg-white/90 transition shadow-lg">
+          Open Dispute
+        </button>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if active_disputes %}
+    <div class="space-y-3">
+      {% for dispute in active_disputes %}
+        <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between text-xs">
+          <span class="text-amber-300">
+            Dispute <strong class="font-mono">{{ dispute.name }}</strong> requires attention 
+            (Opened by @{{ dispute.opened_by.username }} against @{{ dispute.against_user.username }})
+          </span>
+          <a href="{% url 'dispute' dispute.pk %}" class="font-bold underline text-white">[View Dispute]</a>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+
+  {% else %}
+    <!-- CONTRIBUTOR VIEW: 24h Escrow Countdown or Confirmed State -->
+    <div>
+      <h3 class="text-lg font-bold text-white">
+        {% if membership and membership.confirmed_access %}Dispute Support{% else %}Access & Escrow Protection{% endif %}
+      </h3>
+      <p class="text-xs text-white/40 mt-0.5">
+        {% if membership and membership.confirmed_access %}
+          Having a qualifying problem with the host? Open a dispute.
+        {% else %}
+          Required after logging into the subscription vault.
+        {% endif %}
+      </p>
+    </div>
+
+    <!-- 24h Escrow Timer View (Shown if NOT confirmed) -->
+    <div id="access-prompt-view" class="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3 {% if membership and membership.confirmed_access %}hidden{% endif %}" data-joined-at="{{ membership.joined_at|date:'c' }}">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div class="space-y-1">
+          <span class="text-xs text-white font-medium block">Do you have a problem with the login?</span>
+          <p class="text-[11px] text-white/60 leading-relaxed">
+            You have <strong class="text-amber-400">24 hours</strong> to make sure you've got the right login and full access. If something is wrong, please <strong class="text-white">create a dispute</strong> immediately. Otherwise, funds release automatically.
+          </p>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                 {% if not pool.active %}
+          <button type="button" id="open-general-dispute-btn" class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 transition shadow-lg cursor-not-allowed" disabled>
+            Create Dispute
+          </button>
+      {% else %}
+          <button type="button" id="open-general-dispute-btn" class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 transition shadow-lg">
+            Create Dispute
+          </button>
+      {% endif %}
+        </div>
+      </div>
+       
+      <div class="border-t border-white/5 pt-2 flex items-center justify-between text-[10px] text-amber-300/80 italic">
+        <span id="escrow-countdown-text">⏳ Calculating countdown...</span>
+        <span>Funds release automatically if no dispute is opened.</span>
+      </div>
+    </div>
+
+    <!-- Standard Dispute Box View (Shown if ALREADY confirmed) -->
+    <div id="access-success-view" class="p-4 rounded-xl bg-white/5 border border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 {% if not membership or not membership.confirmed_access %}hidden{% endif %}">
+      <span class="text-xs text-white/60">
+        Access has been confirmed. You can still open a dispute if issues arise later.
+      </span>
+       {% if not pool.active %}
+      <button type="button" id="open-confirmed-dispute-btn" class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-black hover:bg-white/90 transition shadow-lg shrink-0 cursor-not-allowed" disabled>
+        Open Dispute
+      </button>
+      {% else %}
+      <button type="button" id="open-confirmed-dispute-btn" class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-black hover:bg-white/90 transition shadow-lg shrink-0">
+        Open Dispute
+      </button>
+      {% endif %}
+    </div>
+
+    {% if active_disputes %}
+    <div class="space-y-3">
+      {% for dispute in active_disputes %}
+        <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between text-xs">
+          <span class="text-amber-300">
+            Dispute <strong class="font-mono">{{ dispute.name }}</strong> requires attention
+          </span>
+          <a href="{% url 'dispute' dispute.pk %}" class="font-bold underline text-white">[View Dispute]</a>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  {% endif %}
+</div>
+
+<!-- Dispute Modal (Includes Host Target Contributor Select) -->
+<div id="dispute-modal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden">
+  <div class="w-full max-w-sm p-6 rounded-[1.5rem] bg-[#121212] border border-white/10 space-y-4 shadow-2xl">
+    <div class="flex justify-between items-center">
+      <h4 class="text-sm font-bold text-white">Open Dispute</h4>
+      <button type="button" id="close-dispute-modal" class="text-white/40 hover:text-white text-xs">✕</button>
+    </div>
+    <form id="dispute-form" class="space-y-3">
+      {% csrf_token %}
+      
+      {% if is_host %}
+      <div class="space-y-1">
+        <label class="text-[10px] text-white/40 uppercase tracking-wider block">Select Contributor</label>
+        <select id="dispute-target-user" class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white focus:outline-none">
+          {% for member in pool_contributors %}
+          <option value="{{ member.user.id }}" class="bg-[#121212]">@{{ member.user.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <div class="space-y-1">
+        <label class="text-[10px] text-white/40 uppercase tracking-wider block">Reason for Dispute</label>
+        <textarea id="dispute-reason-input" rows="3" placeholder="Explain the problem in detail..." required class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white focus:outline-none resize-none"></textarea>
+      </div>
+
+      <div id="dispute-modal-error" class="text-[10px] text-red-400 hidden"></div>
+      
+      <div class="flex gap-2 pt-1">
+        <button type="button" id="cancel-dispute-modal" class="flex-1 py-2 rounded-xl text-xs font-semibold bg-white/5 text-white/60 hover:bg-white/10 transition">Cancel</button>
+        <button type="submit" class="flex-1 py-2 rounded-xl text-xs font-semibold bg-red-500 text-black hover:bg-red-400 transition">Submit Dispute</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+ document.addEventListener('DOMContentLoaded', function() {
+  const accessComp = document.getElementById('access-confirmation-compartment');
+  if (!accessComp) return;
+
+  const poolId = accessComp.dataset.poolId;
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+  // Elements
+  const accessPromptView = document.getElementById('access-prompt-view');
+  const countdownText = document.getElementById('escrow-countdown-text');
+  
+  const openGeneralDisputeBtn = document.getElementById('open-general-dispute-btn');
+  const openConfirmedDisputeBtn = document.getElementById('open-confirmed-dispute-btn');
+  
+  const disputeModal = document.getElementById('dispute-modal');
+  const closeDisputeModal = document.getElementById('close-dispute-modal');
+  const cancelDisputeModal = document.getElementById('cancel-dispute-modal');
+  const disputeForm = document.getElementById('dispute-form');
+  const disputeReasonInput = document.getElementById('dispute-reason-input');
+  const disputeModalError = document.getElementById('dispute-modal-error');
+
+  // --- 1. Live 24h Countdown Timer (Contributors only) ---
+  if (accessPromptView && countdownText) {
+    const joinedAtStr = accessPromptView.dataset.joinedAt;
+    if (joinedAtStr) {
+      const joinedTime = new Date(joinedAtStr).getTime();
+      const expiryTime = joinedTime + (24 * 60 * 60 * 1000); // 24 hours in ms
+
+      function updateTimer() {
+        const now = new Date().getTime();
+        const timeLeft = expiryTime - now;
+
+        if (timeLeft <= 0) {
+          countdownText.textContent = "⏳ Escrow window expired (Auto-release pending)";
+          return;
+        }
+
+        const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+        countdownText.textContent = `⏳ Escrow active (${hours}h ${minutes}m ${seconds}s remaining)`;
+      }
+
+      updateTimer();
+      setInterval(updateTimer, 1000);
+    }
+  }
+
+  // --- 2. Modal Controls ---
+  function toggleDisputeModal(show) {
+    if (!disputeModal) return;
+    if (show) {
+      disputeModal.classList.remove('hidden');
+      if (disputeReasonInput) {
+        disputeReasonInput.value = '';
+        disputeReasonInput.focus();
+      }
+      if (disputeModalError) disputeModalError.classList.add('hidden');
+    } else {
+      disputeModal.classList.add('hidden');
+    }
+  }
+
+  if (closeDisputeModal) closeDisputeModal.addEventListener('click', () => toggleDisputeModal(false));
+  if (cancelDisputeModal) cancelDisputeModal.addEventListener('click', () => toggleDisputeModal(false));
+
+  if (openGeneralDisputeBtn) {
+    openGeneralDisputeBtn.addEventListener('click', () => toggleDisputeModal(true));
+  }
+  if (openConfirmedDisputeBtn) {
+    openConfirmedDisputeBtn.addEventListener('click', () => toggleDisputeModal(true));
+  }
+
+  // --- 3. Handle Dispute Submission ---
+  if (disputeForm) {
+    disputeForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const reason = disputeReasonInput.value;
+      if (disputeModalError) disputeModalError.classList.add('hidden');
+
+      let endpoint = `/market/${poolId}/open-dispute/`;
+      let bodyData = `reason=${encodeURIComponent(reason)}`;
+
+      const targetUserSelect = document.getElementById('dispute-target-user');
+      if (targetUserSelect) {
+        bodyData += `&against_user_id=${targetUserSelect.value}`;
+      }
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken
+          },
+          body: bodyData
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Failed to submit dispute');
+
+        toggleDisputeModal(false);
+        window.location.reload(); 
+
+      } catch (err) {
+        if (disputeModalError) {
+          disputeModalError.textContent = err.message;
+          disputeModalError.classList.remove('hidden');
+        }
+      }
+    });
+  }
+});
+</script>

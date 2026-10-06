@@ -1,0 +1,257 @@
+{% extends 'navbar.html' %}
+
+{% block content %}
+<!-- CoPay Admin - User Profile View -->
+<main class="min-h-screen text-white pt-24 pb-24" style="background: #05080F;">
+  <div class="px-4 md:px-8 lg:px-16 max-w-7xl mx-auto w-full space-y-10">
+    
+    <!-- SECTION 1: User Personal Information & Metrics Card -->
+    <div class="rounded-[2rem] p-6 md:p-10 shadow-2xl relative overflow-hidden" 
+         style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+      <div class="absolute -right-16 -top-16 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+        <div class="flex items-center gap-5">
+          <div class="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white font-black text-2xl md:text-3xl flex items-center justify-center shadow-lg">
+            {{ user_obj.username|slice:":2"|upper }}
+          </div>
+          <div>
+            <span class="text-xs font-bold uppercase tracking-widest text-sky-400 block">User Account Profile</span>
+            <h1 class="text-2xl md:text-3xl font-black text-white mt-0.5">
+              {% if user_obj.first_name or user_obj.last_name %}{{ user_obj.first_name }} {{ user_obj.last_name }}{% else %}{{ user_obj.username }}{% endif %}
+            </h1>
+            <p class="text-xs text-white/50">Username: @{{ user_obj.username }} | Joined {{ profile.created_at|date:"F Y" }}</p>
+          </div>
+        </div>
+
+        <!-- Reputation & Financial Quick Metrics -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-white/[0.03] border border-white/10 rounded-2xl p-4 text-xs">
+          <div>
+            <span class="text-white/40 uppercase tracking-wider text-[10px] block">Host Rating</span>
+            <span class="font-bold text-white text-sm">⭐ {{ avg_rating }} <span class="text-white/40 font-normal">({{ total_ratings_count }})</span></span>
+          </div>
+          <div>
+            <span class="text-white/40 uppercase tracking-wider text-[10px] block">Success Rate</span>
+            <span class="font-bold text-emerald-400 text-sm">{{ success_rate }}%</span>
+          </div>
+          <div>
+            <span class="text-white/40 uppercase tracking-wider text-[10px] block">Total Earnings</span>
+            <span class="font-bold text-sky-400 font-mono text-sm">₦{{ total_earnings|floatformat:2 }}</span>
+          </div>
+          <div>
+            <span class="text-white/40 uppercase tracking-wider text-[10px] block">Disputes (Res/Unres)</span>
+            <span class="font-bold text-white text-sm">{{ resolved_disputes }} / <span class="text-red-400">{{ unresolved_disputes }}</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Details Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8 pt-6 border-t border-white/10 text-xs">
+        <div class="space-y-1">
+          <span class="text-white/40 uppercase font-bold tracking-wider text-[10px]">Email Address</span>
+          <p class="font-mono text-white font-semibold">{{ user_obj.email|default:"No email" }}</p>
+        </div>
+        <div class="space-y-1">
+          <span class="text-white/40 uppercase font-bold tracking-wider text-[10px]">Phone Number</span>
+          <p class="font-mono text-white font-semibold">{{ profile.phone_number|default:"N/A" }}</p>
+        </div>
+        <div class="space-y-1">
+          <span class="text-white/40 uppercase font-bold tracking-wider text-[10px]">WhatsApp Number</span>
+          <p class="font-mono text-white font-semibold">{{ profile.whatsapp_number|default:"N/A" }}</p>
+        </div>
+        <div class="space-y-1">
+          <span class="text-white/40 uppercase font-bold tracking-wider text-[10px]">Bank Verification</span>
+          {% if profile.bank_verified %}
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20"><span>●</span> Verified</span>
+          {% else %}
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20"><span>●</span> Unverified</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+
+    <!-- SECTION 2: Pools Created by User -->
+    <div class="rounded-[2rem] p-6 md:p-8 space-y-6 shadow-2xl" 
+         style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+      <div class="flex justify-between items-center pb-4 border-b border-white/10">
+        <div>
+          <h3 class="text-base font-bold text-white">Pools Created By User</h3>
+          <span class="text-xs text-white/40">Pools where this user is the designated host</span>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-white/10 text-[10px] uppercase tracking-wider text-white/45">
+              <th class="pb-3 font-semibold">Pool ID</th>
+              <th class="pb-3 font-semibold">Service</th>
+              <th class="pb-3 font-semibold">Type</th>
+              <th class="pb-3 font-semibold text-center">Members</th>
+              <th class="pb-3 font-semibold text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5 text-xs font-medium">
+            {% for pool in created_pools %}
+              <tr class="hover:bg-white/[0.02] transition-colors cursor-pointer" onclick="window.location='{% url 'market_detail' pool.id %}'">
+                <td class="py-4 font-mono text-white/60">#CP-{{ pool.id }}</td>
+                <td class="py-4 font-bold text-white">{{ pool.service }}</td>
+                <td class="py-4">
+                  {% if pool.is_public %}
+                    <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20">Public</span>
+                  {% else %}
+                    <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20">Private</span>
+                  {% endif %}
+                </td>
+                <td class="py-4 text-center font-mono text-white">{{ pool.active_members }} / {{ pool.number_of_users }}</td>
+                <td class="py-4 text-right">
+                  <span class="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">{{ pool.status }}</span>
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="py-8 text-center text-white/40">No pools created by this user.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+
+    <!-- SECTION 3: Pools Joined by User -->
+    <div class="rounded-[2rem] p-6 md:p-8 space-y-6 shadow-2xl" 
+         style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+      <div class="flex justify-between items-center pb-4 border-b border-white/10">
+        <div>
+          <h3 class="text-base font-bold text-white">Pools Joined</h3>
+          <span class="text-xs text-white/40">Pools this user participates in as a contributor</span>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-white/10 text-[10px] uppercase tracking-wider text-white/45">
+              <th class="pb-3 font-semibold">Pool ID</th>
+              <th class="pb-3 font-semibold">Service</th>
+              <th class="pb-3 font-semibold">Host</th>
+              <th class="pb-3 font-semibold text-center">Members</th>
+              <th class="pb-3 font-semibold text-center">Membership</th>
+              <th class="pb-3 font-semibold text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5 text-xs font-medium">
+            {% for item in joined_pools %}
+              <tr class="hover:bg-white/[0.02] transition-colors cursor-pointer" onclick="window.location='{% url 'market_detail' item.id %}'">
+                <td class="py-4 font-mono text-white/60">#CP-{{ item.id }}</td>
+                <td class="py-4 font-bold text-white">{{ item.service }}</td>
+                <td class="py-4 text-white/70">{{ item.host }}</td>
+                <td class="py-4 text-center font-mono text-white">{{ item.active_members }} / {{ item.number_of_users }}</td>
+                <td class="py-4 text-center">
+                  {% if item.is_active_membership %}
+                    <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">Active</span>
+                  {% else %}
+                    <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold text-red-400 bg-red-500/10 border border-red-500/20">Inactive</span>
+                  {% endif %}
+                </td>
+                <td class="py-4 text-right">
+                  <span class="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20">{{ item.status }}</span>
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="6" class="py-8 text-center text-white/40">No pools joined by this user.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+
+    <!-- SECTION 4: User Disputes -->
+<div class="rounded-[2rem] p-6 md:p-8 space-y-6 shadow-2xl" 
+     style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+  <div class="flex justify-between items-center pb-4 border-b border-white/10">
+    <div>
+      <h3 class="text-base font-bold text-white">Dispute History</h3>
+      <span class="text-xs text-white/40">Disputes involving this user account (Opened or Against)</span>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="border-b border-white/10 text-[10px] uppercase tracking-wider text-white/45">
+          <th class="pb-3 font-semibold">Dispute ID</th>
+          <th class="pb-3 font-semibold">Pool</th>
+          <th class="pb-3 font-semibold">Opened By</th>
+          <th class="pb-3 font-semibold">Against</th>
+          <th class="pb-3 font-semibold text-right">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/5 text-xs font-medium">
+        {% for d in disputes %}
+          <tr class="hover:bg-white/[0.02] transition-colors cursor-pointer" onclick="window.location='{% url 'dispute' d.id %}'">
+            <td class="py-4 font-bold text-white">
+              <span>#DSP-{{ d.id }}</span>
+              <span class="text-[10px] text-white/40 block font-normal">{{ d.name }}</span>
+            </td>
+            <td class="py-4 text-white/80">{{ d.pool }}</td>
+            <td class="py-4 text-white/70">{{ d.opened_by }}</td>
+            <td class="py-4 text-white/70">{{ d.against_user }}</td>
+            <td class="py-4 text-right">
+              <span class="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold 
+                {% if d.status == 'resolved' %}text-emerald-400 bg-emerald-500/10 border border-emerald-500/20{% else %}text-amber-400 bg-amber-500/10 border border-amber-500/20{% endif %}">
+                {{ d.status }}
+              </span>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="py-8 text-center text-white/40">No disputes found for this user.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+    <!-- SECTION 5: User Payment History -->
+    <div class="rounded-[2rem] p-6 md:p-8 space-y-6 shadow-2xl" 
+         style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);">
+      <div class="flex justify-between items-center pb-4 border-b border-white/10">
+        <div>
+          <h3 class="text-base font-bold text-white">Payment History</h3>
+          <span class="text-xs text-white/40">Record of all financial transactions related to this user</span>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-white/10 text-[10px] uppercase tracking-wider text-white/45">
+              <th class="pb-3 font-semibold">Transaction ID</th>
+              <th class="pb-3 font-semibold">Pool</th>
+              <th class="pb-3 font-semibold">Type</th>
+              <th class="pb-3 font-semibold text-right">Amount</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5 text-xs font-medium">
+            {% for tx in payments %}
+              <tr class="hover:bg-white/[0.02] transition-colors cursor-pointer" onclick="window.location='{% url 'payment_receipt' tx.id %}'">
+                <td class="py-4 font-mono text-white/60">#{{ tx.reference }}</td>
+                <td class="py-4 text-white/80">{{ tx.pool }}</td>
+                <td class="py-4"><span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20">{{ tx.kind }}</span></td>
+                <td class="py-4 font-mono text-white font-bold text-right">
+                  {% if tx.kind_value == 'refund' %}-{% else %}+{% endif %}₦{{ tx.amount|floatformat:2 }}
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4" class="py-8 text-center text-white/40">No payment records found for this user.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+{% endblock %}
