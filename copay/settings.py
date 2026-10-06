@@ -32,17 +32,8 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env.bool("DEBUG", default=False)
 
 
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "192.168.0.197",
-    "localhost",
-    ".ngrok-free.dev",
-    ".ngrok-free.app",
-]
-CSRF_TRUSTED_ORIGINS = [
-    "https://*.ngrok-free.dev",
-    "https://*.ngrok-free.app",
-]
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["127.0.0.1", "localhost"])
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
