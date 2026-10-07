@@ -21,6 +21,8 @@ urlpatterns = [
     path("pools/<int:pk>/cancel/", views.cancel_pool_ajax_admin, name="cancel_pool_ajax_admin"),
     path("pool/<int:pk>/remove-member/<int:member_pk>/",views.remove_member_ajax, name="remove_member_ajax"),
 
+    path("cron/sync-pools/", views.cron_sync_pools),
+
     path(
         'notifications/<int:pk>/read/',
         views.mark_notification_read,

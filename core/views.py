@@ -39,6 +39,9 @@ from .models import *
 
 from .utils import *
 
+def cron_sync_pools(request):
+    sync_all_pools()
+    return JsonResponse({"ok": True})
 
 @require_http_methods(["GET", "POST"])
 def forget(request):

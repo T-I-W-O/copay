@@ -1,0 +1,213 @@
+{% extends 'navbar.html' %}
+
+{% block content %}
+<!-- CoPay Privacy Policy & Payment Data Page -->
+<main class="min-h-screen text-white pt-24 pb-28" style="background: #05080F;">
+  <div class="px-4 md:px-8 lg:px-16 max-w-5xl mx-auto w-full space-y-12">
+    
+    <!-- 1. HERO SECTION -->
+    <div class="text-center space-y-4 pt-4">
+      <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest bg-sky-500/10 text-sky-400 border border-sky-500/20 inline-block">
+        Data Transparency
+      </span>
+      <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight">Privacy & Payment Information</h1>
+      <p class="text-xs md:text-sm text-white/60 max-w-2xl mx-auto leading-relaxed">
+        CoPay collects certain information to create accounts, facilitate shared subscription pools, process payments, protect users, resolve disputes, and keep accurate financial records.
+      </p>
+      <p class="text-[11px] font-mono text-white/40 pt-1">Last updated: October 2026</p>
+    </div>
+
+    <!-- QUICK WHY WE COLLECT GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="rounded-2xl p-5 bg-white/[0.02] border border-white/10 space-y-2">
+        <div class="text-sky-400 text-lg font-bold">🔒</div>
+        <h3 class="text-sm font-bold text-white">Account Security</h3>
+        <p class="text-xs text-white/50 leading-relaxed">Securing identities, communications, and access to shared participant pools.</p>
+      </div>
+      <div class="rounded-2xl p-5 bg-white/[0.02] border border-white/10 space-y-2">
+        <div class="text-emerald-400 text-lg font-bold">💳</div>
+        <h3 class="text-sm font-bold text-white">Payments & Escrow</h3>
+        <p class="text-xs text-white/50 leading-relaxed">Tracking contributions, payouts, and managing secure escrow records.</p>
+      </div>
+      <div class="rounded-2xl p-5 bg-white/[0.02] border border-white/10 space-y-2">
+        <div class="text-purple-400 text-lg font-bold">👥</div>
+        <h3 class="text-sm font-bold text-white">Pools & Access</h3>
+        <p class="text-xs text-white/50 leading-relaxed">Operating shared subscription lifecycles and credential sharing smoothly.</p>
+      </div>
+    </div>
+
+    <!-- 2. "WHAT INFORMATION DO WE COLLECT?" SECTION -->
+    <div class="space-y-6">
+      <div class="border-b border-white/10 pb-3">
+        <h2 class="text-lg font-black text-white">What Information Do We Collect?</h2>
+        <p class="text-xs text-white/50">Detailed breakdown mapped directly to our operational data models.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Account Information Card -->
+        <div class="rounded-[2rem] p-6 space-y-4 bg-white/[0.02] border border-white/10">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-sky-400"></span> Account Information
+          </h3>
+          <div class="flex flex-wrap gap-1.5 py-1">
+            <span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-white/5 text-white/80 border border-white/10">Username</span>
+            <span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-white/5 text-white/80 border border-white/10">Email address</span>
+            <span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-white/5 text-white/80 border border-white/10">Password (Hashed)</span>
+            <span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-white/5 text-white/80 border border-white/10">Phone number</span>
+            <span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-white/5 text-white/80 border border-white/10">WhatsApp number</span>
+          </div>
+          <p class="text-xs text-white/60 leading-relaxed">
+            We use this information to create and secure your account, communicate with you, and contact you when necessary regarding your participation in a pool. CoPay never stores or views your raw plaintext password.
+          </p>
+        </div>
+
+        <!-- Bank / Payout Information Card -->
+        <div class="rounded-[2rem] p-6 space-y-4 bg-white/[0.02] border border-white/10">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Bank & Payout Information
+          </h3>
+          <div class="flex flex-wrap gap-1.5 py-1">
+            <span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-white/5 text-white/80 border border-white/10">Bank name</span>
+            <span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-white/5 text-white/80 border border-white/10">Bank code</span>
+            <span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-white/5 text-white/80 border border-white/10">Account number</span>
+            <span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-white/5 text-white/80 border border-white/10">Account name</span>
+          </div>
+          <p class="text-xs text-white/60 leading-relaxed">
+            We collect bank information from users who need to receive funds or refunds from CoPay. This identifies the intended destination account and supports payout processing. Bank verification helps reduce payout errors and fraud.
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 3. PAYMENT & ESCROW INFORMATION -->
+    <div class="rounded-[2rem] p-6 md:p-8 space-y-4 bg-white/[0.02] border border-white/10">
+      <h2 class="text-sm font-bold text-white flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-purple-400"></span> Payment & Escrow Information
+      </h2>
+      <p class="text-xs text-white/70 leading-relaxed">
+        When you make a payment, CoPay records information necessary to identify and track the transaction, such as the transaction amount, payment reference, payment provider, escrow code, transaction status, timestamps, and dispute markers.
+      </p>
+      <div class="p-4 rounded-xl bg-white/[0.03] border border-white/5 text-xs text-white/60 leading-relaxed space-y-2">
+        <p><strong class="text-white">Important distinction:</strong> Payment providers separately process sensitive payment credentials such as card numbers, CVVs, or bank pins. CoPay does not store your card PIN or online banking password.</p>
+        <p>Payments may be processed through third-party payment providers such as Paystack and/or escrow providers such as PayScrow. Information required to complete or verify a transaction may be shared with the relevant provider.</p>
+      </div>
+    </div>
+
+    <!-- 4. POOL & MEMBERSHIP INFORMATION -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <div class="rounded-[2rem] p-6 space-y-3 bg-white/[0.02] border border-white/10">
+        <h3 class="text-sm font-bold text-white">Pool Information</h3>
+        <p class="text-xs text-white/60 leading-relaxed">
+          We store pool details (service, host, price, user limit, duration, status, public/private visibility, and creation date) to operate shared subscription pools, calculate participant contributions, and maintain lifecycle records.
+        </p>
+      </div>
+
+      <div class="rounded-[2rem] p-6 space-y-3 bg-white/[0.02] border border-white/10">
+        <h3 class="text-sm font-bold text-white">Pool Membership</h3>
+        <p class="text-xs text-white/60 leading-relaxed">
+          Tracks who joined, their role, amount paid, payment status, access confirmation, active status, and dispute markers to determine participation and verification compliance.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- 5. SHARED SERVICE ACCESS CREDENTIALS (JSONField) -->
+    <div class="rounded-[2rem] p-6 md:p-8 space-y-4 bg-amber-500/[0.02] border border-amber-500/20">
+      <h2 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+        <span>⚠️</span> Shared Service Access Information
+      </h2>
+      <p class="text-xs text-white/70 leading-relaxed">
+        When a host creates a shared pool, they may provide login or access information required for contributors to access the advertised service (stored securely via structured platform fields). This information is used solely to facilitate access to the pool and should not contain unnecessary personal information.
+      </p>
+      <p class="text-xs text-white/50">
+        Users must not submit information that does not belong to the shared service or that they are not authorized to share.
+      </p>
+    </div>
+
+    <!-- 6. DISPUTES, REFUNDS & FINANCIAL HISTORY -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="rounded-[2rem] p-6 space-y-3 bg-white/[0.02] border border-white/10">
+        <h3 class="text-sm font-bold text-white">Dispute Records</h3>
+        <p class="text-xs text-white/60 leading-relaxed">
+          We collect dispute information (who opened it, against whom, reasons, resolutions, resolving admin, and status) to investigate complaints, maintain an audit trail, and protect participants from fraudulent activity.
+        </p>
+      </div>
+
+      <div class="rounded-[2rem] p-6 space-y-3 bg-white/[0.02] border border-white/10">
+        <h3 class="text-sm font-bold text-white">Refunds & Financial Ledger</h3>
+        <p class="text-xs text-white/60 leading-relaxed">
+          Financial records (refund amounts, references, platform commission cuts, payout earnings, and transaction logs) are retained to track payments, resolve issues, and maintain accurate transaction histories.
+        </p>
+      </div>
+    </div>
+
+    <!-- 7. DATA FLOW VISUALIZATION -->
+    <div class="rounded-[2.5rem] p-8 space-y-6 text-center bg-white/[0.02] border border-white/10">
+      <h2 class="text-base font-bold text-white">Who May Receive Information?</h2>
+      <p class="text-xs text-white/50">CoPay does not sell your personal information.</p>
+      
+      <div class="flex flex-col items-center gap-3 pt-2 text-xs font-mono">
+        <div class="px-4 py-2 rounded-xl bg-white/10 font-bold text-white">YOU (User)</div>
+        <div class="text-white/40">↓</div>
+        <div class="px-4 py-2 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 font-bold">CoPay Platform</div>
+        <div class="text-white/40">↓</div>
+        <div class="grid grid-cols-2 gap-4 w-full max-w-md pt-2">
+          <div class="p-3 rounded-xl bg-white/[0.03] border border-white/10">
+            <span class="text-emerald-400 font-bold block">Payment Provider</span>
+            <span class="text-[10px] text-white/40">Paystack / Bank</span>
+          </div>
+          <div class="p-3 rounded-xl bg-white/[0.03] border border-white/10">
+            <span class="text-purple-400 font-bold block">Escrow Provider</span>
+            <span class="text-[10px] text-white/40">PayScrow / Settlement</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. HOW WE USE YOUR INFORMATION CHECKLIST -->
+    <div class="rounded-[2rem] p-6 md:p-8 space-y-4 bg-white/[0.02] border border-white/10">
+      <h2 class="text-base font-bold text-white">How We Use Your Information</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs pt-2">
+        <div class="flex items-center gap-2 text-white/80"><span class="text-emerald-400 font-bold">✓</span> Account creation & management</div>
+        <div class="flex items-center gap-2 text-white/80"><span class="text-emerald-400 font-bold">✓</span> Secure payment processing</div>
+        <div class="flex items-center gap-2 text-white/80"><span class="text-emerald-400 font-bold">✓</span> Pool participation tracking</div>
+        <div class="flex items-center gap-2 text-white/80"><span class="text-emerald-400 font-bold">✓</span> Shared-service access facilitation</div>
+        <div class="flex items-center gap-2 text-white/80"><span class="text-emerald-400 font-bold">✓</span> Refunds & host payouts</div>
+        <div class="flex items-center gap-2 text-white/80"><span class="text-emerald-400 font-bold">✓</span> Dispute resolution & mediation</div>
+        <div class="flex items-center gap-2 text-white/80"><span class="text-emerald-400 font-bold">✓</span> Fraud prevention & security</div>
+        <div class="flex items-center gap-2 text-white/80"><span class="text-emerald-400 font-bold">✓</span> System notifications & alerts</div>
+        <div class="flex items-center gap-2 text-white/80"><span class="text-emerald-400 font-bold">✓</span> Financial ledger maintenance</div>
+      </div>
+    </div>
+
+    <!-- 9. USER RIGHTS & CONTACT -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="rounded-[2rem] p-6 space-y-3 bg-white/[0.02] border border-white/10">
+        <h3 class="text-sm font-bold text-white">Your Privacy Rights</h3>
+        <ul class="text-xs text-white/60 space-y-1.5 list-disc list-inside">
+          <li>Request access to your personal information</li>
+          <li>Request correction of inaccurate details</li>
+          <li>Request deletion where legally/operationally possible</li>
+          <li>Inquire about data processing practices</li>
+        </ul>
+      </div>
+
+      <div class="rounded-[2rem] p-6 space-y-3 bg-white/[0.02] border border-white/10 flex flex-col justify-between">
+        <div class="space-y-2">
+          <h3 class="text-sm font-bold text-white">Questions & Support</h3>
+          <p class="text-xs text-white/60">Have questions regarding your data or privacy concerns on CoPay?</p>
+        </div>
+        <div class="pt-2">
+          <a href="mailto:{{site_info.email}}" class="inline-block px-4 py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-white/90 transition-all">
+            {{site_info.email}}
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+{% endblock %}
